@@ -1,0 +1,116 @@
+name: CI/CD – WordPress auf App Service (Lab 8)
+
+# Primärer Trigger für dieses Lab: manuell auslösbar über den "Run workflow"-Button
+# im Actions-Tab (Live-Demo-Kurskontext, siehe Instructions/08-cicd-github-actions.md).
+#
+# In einer echten Produktions-Pipeline wäre der übliche Trigger stattdessen ein
+# automatischer Push auf den main-Branch, z. B.:
+#
+# on:
+#   push:
+#     branches: [ main ]
+#
+# Für dieses Lab bewusst NICHT aktiv, damit die Pipeline im Kurs gezielt und
+# wiederholbar vorgeführt werden kann, statt bei jedem Commit ungewollt zu laufen.
+on:
+  workflow_dispatch: {}
+
+# id-token: write ist zwingend für die OIDC-Anmeldung in azure/login@v2 (Schritt
+# "Bei Azure anmelden" unten) – ohne dieses Recht kann GitHub kein Token für den
+# föderierten Credential ausstellen, siehe Instructions, Abschnitt "Authentifizierung".
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  # AZURE_WEBAPP_NAME kommt bewusst NICHT als Literal hierher: Der tatsächliche
+  # Web-App-Name enthält den von Bicep generierten uniqueString()-Suffix aus Lab 7
+  # und ist erst nach dessen Deployment bekannt (siehe Deployment-Outputs von Lab 7).
+  # Als Repository-Variable hinterlegen: Settings > Secrets and variables > Actions > Variables.
+  AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
+  AZURE_RESOURCE_GROUP: rg-appservice-lab-bicep
+  ARTIFACT_NAME: wordpress-app-package
+
+jobs:
+  build:
+    name: Build – PHP-Paket erstellen
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repository auschecken
+        uses: actions/checkout@v4
+
+      - name: Anwendung als ZIP paketieren
+        # Für dieses Lab wird der gesamte Repository-Inhalt gepackt (abzüglich Git-/
+        # Workflow-/Doku-Dateien). In einem echten WordPress-Projekt läge hier meist
+        # nur der Custom-Theme-/Plugin-Code, nicht der WordPress-Core selbst – der Pfad
+        # müsste dann entsprechend auf das jeweilige Unterverzeichnis eingeschränkt werden.
+        run: |
+          zip -r release.zip . \
+            -x ".git/*" \
+            -x ".github/*" \
+            -x "*.md"
+
+      - name: Paket als Workflow-Artefakt hochladen
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: release.zip
+          retention-days: 1
+
+  deploy:
+    name: Deploy – Zip-Deploy in den Staging-Slot
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Paket-Artefakt herunterladen
+        uses: actions/download-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+
+      - name: Bei Azure anmelden (OIDC, föderierter Credential)
+        # Kein client-secret: azure/login@v2 erkennt automatisch den OIDC-Modus,
+        # wenn nur client-id/tenant-id/subscription-id gesetzt sind. Voraussetzung
+        # ist der einmalige "az ad app federated-credential create"-Schritt aus
+        # Instructions/08-cicd-github-actions.md, Abschnitt "Authentifizierung".
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Nach Staging-Slot deployen
+        uses: azure/webapps-deploy@v3
+        with:
+          app-name: ${{ env.AZURE_WEBAPP_NAME }}
+          resource-group: ${{ env.AZURE_RESOURCE_GROUP }}
+          slot-name: staging
+          package: release.zip
+
+  swap:
+    name: Swap – Staging prüfen und in Production übernehmen
+    needs: deploy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Bei Azure anmelden (OIDC, föderierter Credential)
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Smoke-Test gegen die Staging-URL
+        # Prüft NUR, dass der Staging-Slot überhaupt antwortet (HTTP-Fehlerstatus
+        # lässt curl -f mit Exit-Code != 0 fehlschlagen und bricht den Job ab, bevor
+        # geswappt wird). Ersetzt keinen inhaltlichen Test der WordPress-Seite.
+        run: |
+          curl --fail --silent --show-error \
+            "https://${{ env.AZURE_WEBAPP_NAME }}-staging.azurewebsites.net" \
+            --output /dev/null
+
+      - name: Staging-Slot in Production swappen
+        run: |
+          az webapp deployment slot swap \
+            --resource-group "${{ env.AZURE_RESOURCE_GROUP }}" \
+            --name "${{ env.AZURE_WEBAPP_NAME }}" \
+            --slot staging \
+            --target-slot production

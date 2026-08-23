@@ -1,0 +1,46 @@
+# Azure Deployment Workshop - Lab 5: Beispiel-Variablendatei
+#
+# Verwendung:
+#   cp terraform.tfvars.example terraform.tfvars
+#   # dann Platzhalter unten ersetzen
+#   terraform plan  -var-file="terraform.tfvars"
+#   terraform apply -var-file="terraform.tfvars"
+#
+# terraform.tfvars wird von Terraform beim Aufruf ohne -var-file zwar
+# automatisch geladen, ist hier aber trotzdem explizit angegeben, damit der
+# Befehl unabhaengig vom Dateinamen funktioniert. terraform.tfvars selbst
+# wird NICHT versioniert (siehe .gitignore) -- nur dieses .example-Pendant.
+#
+# ACHTUNG (Lab-Kontext, siehe README.md "Sicherheitshinweis"): Wie in
+# main.bicepparam (Lab 4) muss admin_ssh_public_key vor dem Deployment
+# gesetzt werden -- ohne gueltigen Schluessel schlaegt `terraform plan`/
+# `apply` mit einem Validierungsfehler ab (siehe Instructions/
+# 05-terraform.md, Troubleshooting). Die WordPress-DB-Zugangsdaten stecken
+# NICHT hier, sondern -- wie in Lab 2/4 -- in
+# Allfiles/02-cloud-init/cloud-init.yaml (<CHANGE_ME> dort ebenfalls VOR dem
+# Apply ersetzen, da das vm-Modul diese Datei beim Plan/Apply direkt von der
+# Festplatte einliest).
+
+location             = "westeurope"
+resource_group_name  = "rg-lamp-lab-tf"
+vm_name              = "vm-lamp-tf"
+vm_size              = "Standard_B2s"
+admin_username       = "azureuser"
+
+# Inhalt von ~/.ssh/workshop_lab.pub aus Lab 1 hier einfuegen (eine Zeile,
+# beginnt mit "ssh-ed25519 " oder "ssh-rsa ").
+admin_ssh_public_key = "<CHANGE_ME_SSH_PUBLIC_KEY>"
+
+vnet_address_prefix   = "10.40.0.0/24"
+subnet_address_prefix = "10.40.0.0/24"
+
+# Fuer den Kurs-Lab bewusst offen ("*"), analog zur automatisch erzeugten
+# SSH-Regel in Lab 1 und zum Default in Lab 4. Fuer den produktiven Einsatz
+# auf die eigene IP einschraenken, z. B. "203.0.113.10/32"
+# (eigene IP ermitteln: curl -s https://ifconfig.me).
+ssh_source_address_prefix = "*"
+
+# Kann i. d. R. weggelassen/leer gelassen werden -- main.tf erzeugt dann per
+# random_string automatisch einen global eindeutigen Default, analog zu
+# uniqueString() in Lab 4. Nur bei Bedarf explizit ueberschreiben:
+# dns_label_prefix = "lamp-tf-<CHANGE_ME_UNIQUE_SUFFIX>"

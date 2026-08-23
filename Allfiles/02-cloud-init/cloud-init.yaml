@@ -1,0 +1,107 @@
+#cloud-config
+# Azure Deployment Workshop - Lab 2: LAMP + WordPress vollautomatisiert per Cloud-Init
+#
+# ACHTUNG (Lab-Kontext, siehe README.md "Sicherheitshinweis"): Das Kennwort unten
+# ist ein Klartext-Platzhalter. Vor dem Deployment ALLE Vorkommen von <CHANGE_ME>
+# durch ein eigenes, starkes Kennwort ersetzen. In produktiven Deployments gehört
+# ein Secret wie dieses in Azure Key Vault, nicht in eine Cloud-Init-Datei -- das
+# wird an Tag 3 (App Services, Managed Identity) explizit gezeigt.
+#
+# Getestet gegen: Ubuntu Server 24.04 LTS (Image "Ubuntu2404")
+# Bildet Lab 1 (manuelle Installation) 1:1 automatisiert nach -- siehe
+# Instructions/02-cloud-init.md fuer die Zuordnung der einzelnen Abschnitte.
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - apache2
+  - php
+  - libapache2-mod-php
+  - php-mysql
+  - php-xml
+  - php-curl
+  - php-gd
+  - php-mbstring
+  - php-zip
+  - mysql-server
+  - unzip
+
+write_files:
+  - path: /opt/lamp-lab/db-credentials.env
+    permissions: '0600'
+    owner: root:root
+    content: |
+      WP_DB_NAME=wordpress
+      WP_DB_USER=wpuser
+      WP_DB_PASSWORD=<CHANGE_ME>
+
+  - path: /opt/lamp-lab/install-wordpress.sh
+    permissions: '0700'
+    owner: root:root
+    content: |
+      #!/bin/bash
+      # Wird von runcmd unten einmalig ausgefuehrt, nachdem alle Pakete
+      # installiert sind. Als eigenes Skript gehalten, damit es sich bei
+      # Bedarf (z.B. Troubleshooting im Kurs) auch manuell erneut anstossen
+      # laesst: sudo /opt/lamp-lab/install-wordpress.sh
+      set -euo pipefail
+      source /opt/lamp-lab/db-credentials.env
+
+      # -- Datenbank + Benutzer (entspricht Lab 1, Schritt 7) --
+      mysql -u root <<SQL
+      CREATE DATABASE IF NOT EXISTS ${WP_DB_NAME} CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+      CREATE USER IF NOT EXISTS '${WP_DB_USER}'@'localhost' IDENTIFIED BY '${WP_DB_PASSWORD}';
+      GRANT ALL PRIVILEGES ON ${WP_DB_NAME}.* TO '${WP_DB_USER}'@'localhost';
+      FLUSH PRIVILEGES;
+      SQL
+
+      # -- WordPress-Core herunterladen (entspricht Lab 1, Schritt 8) --
+      cd /tmp
+      wget -q https://wordpress.org/latest.tar.gz
+      tar -xzf latest.tar.gz
+      rm -f /var/www/html/index.html
+      cp -r wordpress/* /var/www/html/
+
+      # -- wp-config.php (entspricht Lab 1, Schritt 9) --
+      cd /var/www/html
+      cp wp-config-sample.php wp-config.php
+      sed -i "s/database_name_here/${WP_DB_NAME}/" wp-config.php
+      sed -i "s/username_here/${WP_DB_USER}/" wp-config.php
+      sed -i "s/password_here/${WP_DB_PASSWORD}/" wp-config.php
+
+      # Echte Security-Keys statt Platzhalter ziehen (WordPress-API, benoetigt
+      # ausgehenden Internetzugriff der VM). Schlaegt der Abruf fehl, bleiben
+      # die Platzhalter aus wp-config-sample.php stehen -- Skript bricht
+      # deswegen NICHT ab (kein "set -e"-Trigger hier gewuenscht).
+      SALTS=$(curl -s https://api.wordpress.org/secret-key/1.1/salt/ || true)
+      if [ -n "$SALTS" ]; then
+        php -r '
+          $salts = file_get_contents("/tmp/salts.txt");
+          $config = file_get_contents("/var/www/html/wp-config.php");
+          $config = preg_replace(
+            "/define\(\x27AUTH_KEY\x27.*?NONCE_SALT\x27.*?\);/s",
+            trim($salts),
+            $config,
+            1
+          );
+          file_put_contents("/var/www/html/wp-config.php", $config);
+        ' 2>/dev/null || echo "$SALTS" > /tmp/salts.txt
+      fi
+
+      # -- Berechtigungen (entspricht Lab 1, Schritt 10) --
+      chown -R www-data:www-data /var/www/html
+      find /var/www/html -type d -exec chmod 755 {} \;
+      find /var/www/html -type f -exec chmod 644 {} \;
+
+      touch /opt/lamp-lab/.install-complete
+
+runcmd:
+  - systemctl enable apache2
+  - systemctl start apache2
+  - systemctl enable mysql
+  - systemctl start mysql
+  - /opt/lamp-lab/install-wordpress.sh
+  - systemctl restart apache2
+
+final_message: "Lab 2 Cloud-Init abgeschlossen nach $UPTIME Sekunden. WordPress-Setup unter http://<PUBLIC-IP>/ aufrufen."

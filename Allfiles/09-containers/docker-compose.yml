@@ -1,0 +1,44 @@
+# Azure Deployment Workshop - Lab 9: lokaler Test-Stack
+#
+# Rein fuer den lokalen Build-/Test-Zyklus VOR dem Push nach Azure Container
+# Registry (Schritt 1 in Instructions/09-containers.md) -- der mysql-Dienst
+# hier ist NICHT Teil des Azure-Deployments (dort uebernimmt modules/
+# mysql.bicep, ein Azure Database for MySQL Flexible Server, exakt dieselbe
+# Rolle). Start: "docker compose up --build", danach WordPress unter
+# http://localhost:8080 erreichbar.
+
+services:
+  wordpress:
+    build: .
+    ports:
+      - "8080:80"
+    environment:
+      WORDPRESS_DB_HOST: mysql
+      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_USER: wpuser
+      WORDPRESS_DB_PASSWORD: "${LOCAL_DB_PASSWORD:-CHANGE_ME_LOCAL_DEV_PASSWORD}"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # Nur fuer den lokalen Test -- entspricht keiner TLS-Pflicht wie Azure
+  # Database for MySQL, daher bewusst kein MYSQL_CLIENT_FLAGS-Aequivalent
+  # noetig. Lokales MySQL statt MariaDB, damit das Verhalten so nah wie
+  # moeglich am tatsaechlichen Azure-Zieldienst bleibt.
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_DATABASE: wordpress
+      MYSQL_USER: wpuser
+      MYSQL_PASSWORD: "${LOCAL_DB_PASSWORD:-CHANGE_ME_LOCAL_DEV_PASSWORD}"
+      MYSQL_ROOT_PASSWORD: "${LOCAL_DB_ROOT_PASSWORD:-CHANGE_ME_LOCAL_DEV_ROOT_PASSWORD}"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  mysql_data:

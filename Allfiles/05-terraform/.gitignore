@@ -1,0 +1,49 @@
+# Azure Deployment Workshop - Lab 5: .gitignore fuer Terraform
+#
+# Siehe Instructions/05-terraform.md, Abschnitt "Was ist neu gegenueber
+# Lab 4" -- der zentrale konzeptionelle Unterschied zu Bicep ist die
+# explizite State-Datei, die hier bewusst vom Repository ausgeschlossen
+# wird.
+
+# Lokaler Arbeitszustand nach `terraform init` (heruntergeladene
+# Provider-Binaries u. a.) -- nie versionieren, wird bei jedem `init` neu
+# erzeugt.
+.terraform/
+.terraform.tfstate.lock.info
+
+# State-Dateien: enthalten den vollstaendigen zuletzt bekannten Zustand
+# aller Ressourcen, u. U. inkl. sensibler Attribute (z. B. der Base64-
+# kodierte customData-Inhalt inkl. Cloud-Init). Duerfen NIEMALS ins Repo.
+# Fuer Team-/Produktivbetrieb gehoert der State in ein Remote-Backend mit
+# Locking (z. B. Azure Storage, siehe Kommentar in main.tf), nicht lokal.
+*.tfstate
+*.tfstate.*
+
+# Plandateien aus `terraform plan -out=<datei>`
+*.tfplan
+*.plan
+
+# Provider-Lockfile: bewusst NICHT generell ignoriert. In Teams/CI sollte
+# .terraform.lock.hcl eigentlich eingecheckt werden, damit alle dieselben
+# Provider-Versionen ziehen (reproduzierbare Builds). Fuer dieses
+# Einmal-Demo-Lab optional -- Zeile bei Bedarf aktivieren:
+# .terraform.lock.hcl
+
+# Variablendateien mit echten Werten (SSH-Key usw.) -- nur das
+# .example-Pendant wird versioniert.
+*.tfvars
+*.tfvars.json
+!terraform.tfvars.example
+
+# Crash-Logs
+crash.log
+crash.*.log
+
+# CLI-Konfigurationsdateien (koennen Credentials/Backend-Konfiguration
+# enthalten)
+.terraformrc
+terraform.rc
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
