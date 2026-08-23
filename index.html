@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Azure Deployment Workshop — Lab-Repository</title>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --bg-card: #14171c;
+    --bg-card-hover: #1a1e24;
+    --border: #262b33;
+    --orange: #f59e0b;
+    --orange-dim: #7a5109;
+    --text: #e8eaed;
+    --text-dim: #9aa1ab;
+    --text-faint: #5f6772;
+    --done: #34a853;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.55;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px 80px; }
+  header.hero {
+    background: linear-gradient(160deg, #14171c 0%, #0b0d10 70%);
+    border-bottom: 1px solid var(--border);
+    padding: 56px 24px 40px;
+  }
+  header.hero .wrap { padding-bottom: 0; }
+  .eyebrow {
+    color: var(--orange);
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    margin: 0 0 10px;
+  }
+  h1 { font-size: 32px; margin: 0 0 14px; letter-spacing: -0.01em; }
+  .lede { color: var(--text-dim); font-size: 16px; max-width: 700px; margin: 0 0 22px; }
+  .meta-row { display: flex; flex-wrap: wrap; gap: 10px; }
+  .pill {
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 999px; padding: 6px 14px; font-size: 13px; color: var(--text-dim);
+  }
+  .pill b { color: var(--text); font-weight: 600; }
+  a.repo-link {
+    color: var(--orange); text-decoration: none; font-weight: 600;
+  }
+  a.repo-link:hover { text-decoration: underline; }
+
+  section.day {
+    margin-top: 48px;
+  }
+  .day-head {
+    display: flex; align-items: baseline; gap: 14px; margin-bottom: 4px;
+  }
+  .day-badge {
+    background: var(--orange); color: #1a1206; font-weight: 800; font-size: 13px;
+    border-radius: 6px; padding: 3px 10px; letter-spacing: 0.02em;
+  }
+  .day-head h2 { font-size: 20px; margin: 0; }
+  .day-sub { color: var(--text-faint); font-size: 14px; margin: 6px 0 20px; }
+
+  .lab-card {
+    display: block; text-decoration: none; color: inherit;
+    background: var(--bg-card); border: 1px solid var(--border);
+    border-radius: 12px; padding: 20px 22px; margin-bottom: 14px;
+    transition: background 0.15s, border-color 0.15s;
+  }
+  .lab-card:hover { background: var(--bg-card-hover); border-color: #3a4048; }
+  .lab-top { display: flex; align-items: center; gap: 12px; margin-bottom: 8px; flex-wrap: wrap; }
+  .lab-num {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    color: var(--orange); font-weight: 700; font-size: 14px; flex: none;
+  }
+  .lab-title { font-size: 17px; font-weight: 700; color: var(--text); }
+  .lab-status {
+    margin-left: auto; font-size: 11px; font-weight: 700; text-transform: uppercase;
+    letter-spacing: 0.04em; color: var(--done); border: 1px solid var(--done);
+    border-radius: 999px; padding: 2px 10px; opacity: 0.85;
+  }
+  .lab-desc { color: var(--text-dim); font-size: 14.5px; margin: 0 0 10px; }
+  .lab-foot { display: flex; gap: 16px; font-size: 13px; color: var(--text-faint); }
+  .lab-foot span { display: inline-flex; align-items: center; gap: 5px; }
+
+  footer {
+    margin-top: 64px; padding-top: 32px; border-top: 1px solid var(--border);
+  }
+  footer h3 { font-size: 15px; color: var(--text); margin: 0 0 10px; }
+  footer ul { color: var(--text-dim); font-size: 14px; padding-left: 20px; margin: 0 0 24px; }
+  footer li { margin-bottom: 6px; }
+  .note {
+    background: var(--bg-card); border: 1px solid var(--orange-dim);
+    border-left: 3px solid var(--orange); border-radius: 8px;
+    padding: 14px 18px; font-size: 13.5px; color: var(--text-dim); margin-top: 20px;
+  }
+  .note b { color: var(--text); }
+  .credit { color: var(--text-faint); font-size: 12.5px; margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="eyebrow">Azure Deployment Workshop</p>
+    <h1>Lab-Repository</h1>
+    <p class="lede">
+      Neun praktische Labs, eine Leitanwendung: WordPress (Apache/PHP/MySQL) wandert über vier Kurstage
+      vom manuellen VM-Deployment bis zum containerisierten Betrieb — jede Stufe baut auf der vorherigen auf.
+    </p>
+    <div class="meta-row">
+      <span class="pill">📦 <b>9 Labs</b></span>
+      <span class="pill">🗓️ <b>4 Kurstage</b></span>
+      <span class="pill">🔗 <a class="repo-link" href="https://github.com/tdrilling/azure-deployment-workshop-labs" target="_blank" rel="noopener">GitHub-Repository</a></span>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <section class="day">
+    <div class="day-head">
+      <span class="day-badge">TAG 1</span>
+      <h2>VM-basiertes Deployment</h2>
+    </div>
+    <p class="day-sub">Von der manuellen Installation zur automatisierten VM — Linux und Windows.</p>
+
+    <a class="lab-card" href="https://github.com/tdrilling/azure-deployment-workshop-labs/blob/main/Instructions/01-manual-lamp.md">
+      <div class="lab-top">
+        <span class="lab-num">Lab 01</span>
+        <span class="lab-title">Manuelle LAMP-Installation auf einer Azure-VM</span>
+        <span class="lab-status">fertig</span>
+      </div>
+      <p class="lab-desc">Azure-VM anlegen, Apache/PHP/MySQL/WordPress vollständig manuell installieren — Referenzpunkt für alle folgenden, zunehmend automatisierten Stufen.</p>
+      <div class="lab-foot"><span>⏱ 45–60 Min.</span><span>🔑 SSH-Schlüsselpaar</span></div>
+    </a>
+
+    <a class="lab-card" href="https://github.com/tdrilling/azure-deployment-workshop-labs/blob/main/Instructions/02-cloud-init.md">
+      <div class="lab-top">
+        <span class="lab-num">Lab 02</span>
+        <span class="lab-title">LAMP + WordPress automatisiert per Cloud-Init</span>
+        <span class="lab-status">fertig</span>
+      </div>
+      <p class="lab-desc">Dieselbe Zielarchitektur wie Lab 1, diesmal vollständig automatisiert beim VM-Deployment selbst — kein manueller SSH-Schritt mehr nötig.</p>
+      <div class="lab-foot"><span>⏱ 20–25 Min.</span><span>📄 cloud-init.yaml</span></div>
+    </a>
+
+    <a class="lab-card" href="https://github.com/tdrilling/azure-deployment-workshop-labs/blob/main/Instructions/03-windows-dsc.md">
+      <div class="lab-top">
+        <span class="lab-num">Lab 03</span>
+        <span class="lab-title">WordPress unter Windows: VM-Erweiterungen, VM-Anwendungen und DSC</span>
+        <span class="lab-status">fertig</span>
+      </div>
+      <p class="lab-desc">Dieselbe Zielarchitektur unter Windows/IIS — Vehikel, um drei verwandte Automatisierungskonzepte einzuordnen: VM-Erweiterungen, VM-Anwendungen und Desired State Configuration.</p>
+      <div class="lab-foot"><span>⏱ 30–40 Min.</span><span>🪟 Windows-Verwaltungsumgebung</span></div>
+    </a>
+  </section>
+
+  <section class="day">
+    <div class="day-head">
+      <span class="day-badge">TAG 2</span>
+      <h2>Infrastructure as Code</h2>
+    </div>
+    <p class="day-sub">Dieselbe Architektur deklarativ — erst mit Bicep, dann zum Vergleich mit Terraform.</p>
+
+    <a class="lab-card" href="https://github.com/tdrilling/azure-deployment-workshop-labs/blob/main/Instructions/04-bicep.md">
+      <div class="lab-top">
+        <span class="lab-num">Lab 04</span>
+        <span class="lab-title">WordPress deklarativ mit Bicep</span>
+        <span class="lab-status">fertig</span>
+      </div>
+      <p class="lab-desc">Dieselbe Zielarchitektur wie Lab 1/2, diesmal vollständig deklarativ statt imperativ — ab hier durchgängiges IaC-Werkzeug für den Rest des Kurses.</p>
+      <div class="lab-foot"><span>⏱ 30–40 Min.</span><span>🧱 Bicep-CLI</span></div>
+    </a>
+
+    <a class="lab-card" href="https://github.com/tdrilling/azure-deployment-workshop-labs/blob/main/Instructions/05-terraform.md">
+      <div class="lab-top">
+        <span class="lab-num">Lab 05</span>
+        <span class="lab-title">WordPress deklarativ mit Terraform (einmalige Demonstration)</span>
+        <span class="lab-status">fertig</span>
+      </div>
+      <p class="lab-desc">Dieselbe Zielarchitektur wie Lab 4, diesmal mit Terraform — stellt den State-Datei-basierten Ansatz dem State-losen Bicep-Modell gegenüber. Kurs bleibt danach bei Bicep/ARM.</p>
+      <div class="lab-foot"><span>⏱ 30–40 Min.</span><span>🌍 Terraform-CLI</span></div>
+    </a>
+  </section>
+
+  <section class="day">
+    <div class="day-head">
+      <span class="day-badge">TAG 3</span>
+      <h2>App Services</h2>
+    </div>
+    <p class="day-sub">Der Wechsel von IaaS zu PaaS — manuell, deklarativ, und mit echter CI/CD-Pipeline.</p>
+
+    <a class="lab-card" href="https://github.com/tdrilling/azure-deployment-workshop-labs/blob/main/Instructions/06-app-service-manual.md">
+      <div class="lab-top">
+        <span class="lab-num">Lab 06</span>
+        <span class="lab-title">Manuelles PHP-Deployment auf App Service</span>
+        <span class="lab-status">fertig</span>
+      </div>
+      <p class="lab-desc">WordPress läuft erstmals auf Azure App Service (PaaS) statt einer selbst verwalteten VM, angebunden an einen echten Azure Database for MySQL Flexible Server.</p>
+      <div class="lab-foot"><span>⏱ 45–60 Min.</span></div>
+    </a>
+
+    <a class="lab-card" href="https://github.com/tdrilling/azure-deployment-workshop-labs/blob/main/Instructions/07-app-service-bicep.md">
+      <div class="lab-top">
+        <span class="lab-num">Lab 07</span>
+        <span class="lab-title">Deklaratives App-Service-Deployment (Bicep)</span>
+        <span class="lab-status">fertig</span>
+      </div>
+      <p class="lab-desc">Dieselbe Zielarchitektur wie Lab 6, diesmal deklarativ mit Bicep — keine eigene VM, keine NIC, kein VNet: je höher die Abstraktionsstufe, desto weniger Infrastruktur-Boilerplate.</p>
+      <div class="lab-foot"><span>⏱ 25–30 Min.</span><span>🧱 Bicep-CLI</span></div>
+    </a>
+
+    <a class="lab-card" href="https://github.com/tdrilling/azure-deployment-workshop-labs/blob/main/Instructions/08-cicd-github-actions.md">
+      <div class="lab-top">
+        <span class="lab-num">Lab 08</span>
+        <span class="lab-title">CI/CD mit GitHub Actions: Build → Deploy in Slot → Swap</span>
+        <span class="lab-status">fertig</span>
+      </div>
+      <p class="lab-desc">Eine echte, lauffähige GitHub-Actions-Pipeline für die App-Service-Umgebung aus Lab 7: Build → Deploy in den Staging-Slot → Swap in Production.</p>
+      <div class="lab-foot"><span>⏱ 20–25 Min.</span><span>⚙️ setzt Lab 7 voraus</span></div>
+    </a>
+  </section>
+
+  <section class="day">
+    <div class="day-head">
+      <span class="day-badge">TAG 4</span>
+      <h2>Container &amp; Kursabschluss</h2>
+    </div>
+    <p class="day-sub">Die dritte Hosting-Stufe der Workshop-Reise: Portabilität statt Plattform-Bindung.</p>
+
+    <a class="lab-card" href="https://github.com/tdrilling/azure-deployment-workshop-labs/blob/main/Instructions/09-containers.md">
+      <div class="lab-top">
+        <span class="lab-num">Lab 09</span>
+        <span class="lab-title">Container-Deployment (Azure Container Instances)</span>
+        <span class="lab-status">fertig</span>
+      </div>
+      <p class="lab-desc">Dieselbe Zielanwendung als portables Container-Image, lokal gebaut und getestet, über Azure Container Registry nach Azure Container Instances deployt.</p>
+      <div class="lab-foot"><span>⏱ 30–35 Min.</span><span>🐳 Docker Desktop</span></div>
+    </a>
+  </section>
+
+  <footer>
+    <h3>Voraussetzungen</h3>
+    <ul>
+      <li>Eine Azure-Subscription mit Berechtigung, Ressourcengruppen und die jeweils genannten Ressourcentypen anzulegen.</li>
+      <li>Azure CLI (<code>az</code>) und/oder Azure PowerShell (<code>Az</code>-Module), abhängig vom Lab.</li>
+      <li>Für die deklarativen Labs: Bicep-CLI (in aktueller Azure CLI enthalten) bzw. Terraform.</li>
+      <li>Für Lab 1/2: ein SSH-Schlüsselpaar (öffentlich/privat), siehe jeweilige Anleitung.</li>
+      <li>Für Lab 3: eine Windows-Verwaltungsumgebung mit PowerShell 5.1+ (DSC).</li>
+      <li>Für Lab 9: Docker Desktop (oder eine gleichwertige lokale Docker-Umgebung).</li>
+    </ul>
+
+    <h3>Repository-Struktur</h3>
+    <ul>
+      <li><code>Instructions/</code> — eine Markdown-Anleitung pro Lab, nummeriert nach Kursreihenfolge.</li>
+      <li><code>Allfiles/</code> — die zugehörigen Skripte/Templates, in gleichnamigen Unterordnern.</li>
+      <li><code>Allfiles/reference/</code> — zusätzliche, funktionsfähige Vorlagen zum Nacharbeiten (z. B. das ARM-Äquivalent zum Bicep-Lab).</li>
+    </ul>
+
+    <div class="note">
+      <b>Sicherheitshinweis:</b> Einige Skripte enthalten aus didaktischen Gründen Platzhalter-Kennwörter im Klartext (markiert mit <code>&lt;CHANGE_ME&gt;</code>) — ausschließlich für den Lab-Kontext akzeptabel. In produktiven Deployments gehören Geheimnisse in Azure Key Vault bzw. werden zur Laufzeit injiziert (siehe Tag 3).
+    </div>
+
+    <p class="credit">Thomas Drilling · Microsoft Certified Trainer · drilling-azure.de / cloudtrain.de</p>
+  </footer>
+
+</div>
+</body>
+</html>
