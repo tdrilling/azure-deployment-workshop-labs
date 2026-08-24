@@ -2,6 +2,8 @@
 
 Begleitrepository zum Azure Deployment Workshop. Enthält die Lab-Anleitungen (`Instructions/`) und die dazugehörigen Deployment-Artefakte (`Allfiles/`), organisiert nach Kurstagen und Reifegraden — vom manuellen VM-Deployment bis zu App Services/Containern.
 
+**[Link zu den Lab-Anleitungen (HTML-Übersicht)](https://tdrilling.github.io/azure-deployment-workshop-labs/)** — dieselbe Übersicht wie unten, aber gerendert statt als Quellcode (siehe Hinweis unten zu GitHub Pages).
+
 ## Struktur
 
 - `Instructions/` — eine Markdown-Anleitung pro Lab, nummeriert nach Reihenfolge im Kurs.
@@ -40,3 +42,14 @@ Dieses Repository entsteht parallel zur Foliensammlung. Der aktuelle Stand der L
 | 07 | App Service deklarativ | fertig (Bicep mit `az bicep build`/`lint`/`build-params` geprüft: 0 Fehler, 0 Warnungen) |
 | 08 | CI/CD mit GitHub Actions | fertig |
 | 09 | Container-Deployment | fertig (Bicep mit `az bicep build`/`lint`/`build-params` geprüft: 0 Fehler, 0 Warnungen) |
+
+## Gerenderte HTML-Übersicht (GitHub Pages)
+
+`index.html` in diesem Repository-Root ist eine gerenderte Übersichtsseite aller neun Labs (analog zu `README.md` in Microsofts [AZ-104-Repository](https://github.com/MicrosoftLearning/AZ-104-MicrosoftAzureAdministrator), das genauso verlinkt). GitHub zeigt `.html`-Dateien im normalen Datei-Browser immer nur als Quellcode an (Sicherheitsgrund, gilt für jedes Repository) — damit der obige Link tatsächlich die gerenderte Seite zeigt statt Quellcode, muss GitHub Pages einmalig aktiviert werden:
+
+1. Auf GitHub: **Settings → Pages**
+2. **Source:** "Deploy from a branch"
+3. **Branch:** `main`, Ordner `/ (root)`
+4. **Save**
+
+Nach ein bis zwei Minuten ist die Seite unter `https://tdrilling.github.io/azure-deployment-workshop-labs/` erreichbar und zeigt automatisch `index.html` als Startseite.
