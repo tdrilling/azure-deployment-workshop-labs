@@ -1,0 +1,295 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Deklaratives App-Service-Deployment (Bicep) — Azure Deployment Workshop</title>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --bg-card: #14171c;
+    --bg-card-hover: #1a1e24;
+    --border: #262b33;
+    --orange: #f59e0b;
+    --orange-dim: #7a5109;
+    --text: #e8eaed;
+    --text-dim: #9aa1ab;
+    --text-faint: #5f6772;
+    --done: #34a853;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px 90px; }
+  header.hero {
+    background: linear-gradient(160deg, #14171c 0%, #0b0d10 70%);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 24px 30px;
+  }
+  header.hero .wrap { padding-bottom: 0; }
+  .crumb { font-size: 13.5px; margin: 0 0 16px; }
+  .crumb a { color: var(--orange); text-decoration: none; font-weight: 600; }
+  .crumb a:hover { text-decoration: underline; }
+  .eyebrow {
+    color: var(--orange); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 10px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .day-badge {
+    background: var(--orange); color: #1a1206; font-weight: 800; font-size: 12px;
+    border-radius: 6px; padding: 2px 9px; letter-spacing: 0.02em;
+  }
+  h1 { font-size: 28px; margin: 0; letter-spacing: -0.01em; line-height: 1.3; }
+
+  article { padding-top: 34px; }
+  article h2 {
+    font-size: 21px; margin: 40px 0 14px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border); color: var(--text);
+  }
+  article h2:first-child { margin-top: 0; }
+  article h3 { font-size: 17px; margin: 26px 0 10px; color: var(--text); }
+  article h4 { font-size: 14.5px; margin: 20px 0 8px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.03em; }
+  article p { color: var(--text-dim); font-size: 15.5px; margin: 0 0 14px; }
+  article strong { color: var(--text); }
+  article a { color: var(--orange); }
+  article ul, article ol { color: var(--text-dim); font-size: 15.5px; padding-left: 26px; margin: 0 0 16px; }
+  article li { margin-bottom: 6px; }
+  article li > p { margin-bottom: 6px; }
+  article code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px;
+    padding: 1.5px 6px; font-size: 0.88em; color: #ffb454;
+  }
+  article pre { margin: 0 0 18px; padding: 0; }
+  article pre code {
+    display: block; padding: 16px 18px; overflow-x: auto; border-radius: 10px;
+    background: #0d1117; border: 1px solid var(--border); color: var(--text);
+    font-size: 13.5px; line-height: 1.55;
+  }
+  .codehilite { margin: 0 0 18px; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
+  .codehilite pre { margin: 0; padding: 16px 18px; overflow-x: auto; background: #0d1117 !important; font-size: 13.5px; line-height: 1.55; }
+  pre { line-height: 125%; }
+td.linenos .normal { color: #6e7681; background-color: #0d1117; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #6e7681; background-color: #0d1117; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #e6edf3; background-color: #6e7681; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #e6edf3; background-color: #6e7681; padding-left: 5px; padding-right: 5px; }
+.codehilite .hll { background-color: #6e7681 }
+.codehilite { background: #0d1117; color: #E6EDF3 }
+.codehilite .c { color: #8B949E; font-style: italic } /* Comment */
+.codehilite .err { color: #F85149 } /* Error */
+.codehilite .esc { color: #E6EDF3 } /* Escape */
+.codehilite .g { color: #E6EDF3 } /* Generic */
+.codehilite .k { color: #FF7B72 } /* Keyword */
+.codehilite .l { color: #A5D6FF } /* Literal */
+.codehilite .n { color: #E6EDF3 } /* Name */
+.codehilite .o { color: #FF7B72; font-weight: bold } /* Operator */
+.codehilite .x { color: #E6EDF3 } /* Other */
+.codehilite .p { color: #E6EDF3 } /* Punctuation */
+.codehilite .ch { color: #8B949E; font-style: italic } /* Comment.Hashbang */
+.codehilite .cm { color: #8B949E; font-style: italic } /* Comment.Multiline */
+.codehilite .cp { color: #8B949E; font-weight: bold; font-style: italic } /* Comment.Preproc */
+.codehilite .cpf { color: #8B949E; font-style: italic } /* Comment.PreprocFile */
+.codehilite .c1 { color: #8B949E; font-style: italic } /* Comment.Single */
+.codehilite .cs { color: #8B949E; font-weight: bold; font-style: italic } /* Comment.Special */
+.codehilite .gd { color: #FFA198; background-color: #490202 } /* Generic.Deleted */
+.codehilite .ge { color: #E6EDF3; font-style: italic } /* Generic.Emph */
+.codehilite .ges { color: #E6EDF3; font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.codehilite .gr { color: #FFA198 } /* Generic.Error */
+.codehilite .gh { color: #79C0FF; font-weight: bold } /* Generic.Heading */
+.codehilite .gi { color: #56D364; background-color: #0F5323 } /* Generic.Inserted */
+.codehilite .go { color: #8B949E } /* Generic.Output */
+.codehilite .gp { color: #8B949E } /* Generic.Prompt */
+.codehilite .gs { color: #E6EDF3; font-weight: bold } /* Generic.Strong */
+.codehilite .gu { color: #79C0FF } /* Generic.Subheading */
+.codehilite .gt { color: #FF7B72 } /* Generic.Traceback */
+.codehilite .g-Underline { color: #E6EDF3; text-decoration: underline } /* Generic.Underline */
+.codehilite .kc { color: #79C0FF } /* Keyword.Constant */
+.codehilite .kd { color: #FF7B72 } /* Keyword.Declaration */
+.codehilite .kn { color: #FF7B72 } /* Keyword.Namespace */
+.codehilite .kp { color: #79C0FF } /* Keyword.Pseudo */
+.codehilite .kr { color: #FF7B72 } /* Keyword.Reserved */
+.codehilite .kt { color: #FF7B72 } /* Keyword.Type */
+.codehilite .ld { color: #79C0FF } /* Literal.Date */
+.codehilite .m { color: #A5D6FF } /* Literal.Number */
+.codehilite .s { color: #A5D6FF } /* Literal.String */
+.codehilite .na { color: #E6EDF3 } /* Name.Attribute */
+.codehilite .nb { color: #E6EDF3 } /* Name.Builtin */
+.codehilite .nc { color: #F0883E; font-weight: bold } /* Name.Class */
+.codehilite .no { color: #79C0FF; font-weight: bold } /* Name.Constant */
+.codehilite .nd { color: #D2A8FF; font-weight: bold } /* Name.Decorator */
+.codehilite .ni { color: #FFA657 } /* Name.Entity */
+.codehilite .ne { color: #F0883E; font-weight: bold } /* Name.Exception */
+.codehilite .nf { color: #D2A8FF; font-weight: bold } /* Name.Function */
+.codehilite .nl { color: #79C0FF; font-weight: bold } /* Name.Label */
+.codehilite .nn { color: #FF7B72 } /* Name.Namespace */
+.codehilite .nx { color: #E6EDF3 } /* Name.Other */
+.codehilite .py { color: #79C0FF } /* Name.Property */
+.codehilite .nt { color: #7EE787 } /* Name.Tag */
+.codehilite .nv { color: #79C0FF } /* Name.Variable */
+.codehilite .ow { color: #FF7B72; font-weight: bold } /* Operator.Word */
+.codehilite .pm { color: #E6EDF3 } /* Punctuation.Marker */
+.codehilite .w { color: #6E7681 } /* Text.Whitespace */
+.codehilite .mb { color: #A5D6FF } /* Literal.Number.Bin */
+.codehilite .mf { color: #A5D6FF } /* Literal.Number.Float */
+.codehilite .mh { color: #A5D6FF } /* Literal.Number.Hex */
+.codehilite .mi { color: #A5D6FF } /* Literal.Number.Integer */
+.codehilite .mo { color: #A5D6FF } /* Literal.Number.Oct */
+.codehilite .sa { color: #79C0FF } /* Literal.String.Affix */
+.codehilite .sb { color: #A5D6FF } /* Literal.String.Backtick */
+.codehilite .sc { color: #A5D6FF } /* Literal.String.Char */
+.codehilite .dl { color: #79C0FF } /* Literal.String.Delimiter */
+.codehilite .sd { color: #A5D6FF } /* Literal.String.Doc */
+.codehilite .s2 { color: #A5D6FF } /* Literal.String.Double */
+.codehilite .se { color: #79C0FF } /* Literal.String.Escape */
+.codehilite .sh { color: #79C0FF } /* Literal.String.Heredoc */
+.codehilite .si { color: #A5D6FF } /* Literal.String.Interpol */
+.codehilite .sx { color: #A5D6FF } /* Literal.String.Other */
+.codehilite .sr { color: #79C0FF } /* Literal.String.Regex */
+.codehilite .s1 { color: #A5D6FF } /* Literal.String.Single */
+.codehilite .ss { color: #A5D6FF } /* Literal.String.Symbol */
+.codehilite .bp { color: #E6EDF3 } /* Name.Builtin.Pseudo */
+.codehilite .fm { color: #D2A8FF; font-weight: bold } /* Name.Function.Magic */
+.codehilite .vc { color: #79C0FF } /* Name.Variable.Class */
+.codehilite .vg { color: #79C0FF } /* Name.Variable.Global */
+.codehilite .vi { color: #79C0FF } /* Name.Variable.Instance */
+.codehilite .vm { color: #79C0FF } /* Name.Variable.Magic */
+.codehilite .il { color: #A5D6FF } /* Literal.Number.Integer.Long */
+
+  article table {
+    width: 100%; border-collapse: collapse; margin: 0 0 20px; font-size: 14.5px;
+  }
+  article th, article td {
+    text-align: left; padding: 9px 14px; border: 1px solid var(--border);
+  }
+  article th { background: var(--bg-card); color: var(--text); font-weight: 700; }
+  article td { color: var(--text-dim); }
+  article blockquote {
+    margin: 0 0 18px; padding: 14px 18px; background: var(--bg-card);
+    border: 1px solid var(--orange-dim); border-left: 3px solid var(--orange);
+    border-radius: 8px; color: var(--text-dim); font-size: 14.5px;
+  }
+  article blockquote p { margin: 0; color: var(--text-dim); }
+  article blockquote p + p { margin-top: 8px; }
+  article hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  .lab-nav {
+    display: flex; justify-content: space-between; gap: 16px; margin-top: 48px;
+    padding-top: 24px; border-top: 1px solid var(--border);
+  }
+  .lab-nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px;
+    background: var(--bg-card);
+  }
+  .lab-nav a:hover { color: var(--orange); border-color: var(--orange-dim); }
+
+  .credit { color: var(--text-faint); font-size: 12.5px; margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="crumb"><a href="../index.html">&larr; Zur Lab-Übersicht</a></p>
+    <p class="eyebrow"><span class="day-badge">Tag 3</span>Lab 07 &middot; Azure Deployment Workshop</p>
+    <h1>Deklaratives App-Service-Deployment (Bicep)</h1>
+  </div>
+</header>
+
+<div class="wrap">
+  <article>
+<p><strong>Ziel:</strong> Dieselbe Zielarchitektur wie in Lab 6 (WordPress auf Azure App Service, angebunden an eine Azure Database for MySQL Flexible Server), diesmal vollständig <strong>deklarativ</strong> statt imperativ (CLI, Lab 6) — dasselbe Muster wie der Schritt von Lab 1 (CLI) zu Lab 4 (Bicep) an Tag 2. Bicep bleibt damit über den gesamten Kurs hinweg das durchgängige IaC-Werkzeug. Dateien: <code>Allfiles/07-app-service-bicep/main.bicep</code>, <code>Allfiles/07-app-service-bicep/modules/appservice.bicep</code>, <code>Allfiles/07-app-service-bicep/modules/mysql.bicep</code>, <code>Allfiles/07-app-service-bicep/main.bicepparam</code>.</p>
+<p><strong>Dauer:</strong> ca. 25-30 Minuten.</p>
+<hr />
+<h2>Was ist neu gegenüber Lab 4 (Tag 2)?</h2>
+<p>Lab 4 orchestrierte zwei Module: <code>modules/network.bicep</code> (VNet/Subnet/NSG/Public-IP/NIC) und <code>modules/vm.bicep</code> (die VM selbst). Dieses Lab orchestriert ebenfalls zwei Module — aber <strong>kein einziges davon ist <code>modules/network.bicep</code></strong>. Das ist bewusst so und der wichtigste didaktische Punkt dieses Labs: App Service ist eine vollständig plattformverwaltete PaaS-Umgebung. Es gibt keine eigene VM, keine NIC, keine Public IP und (in diesem einführenden Lab, ohne VNet-Integration/Private Endpoint) auch kein eigenes VNet, das dieses Template verwalten müsste. Je höher die Abstraktionsstufe (IaaS → PaaS), desto weniger Infrastruktur-Boilerplate bleibt im Template übrig — dieselbe fünf Netzwerkressourcen aus Lab 4 entfallen hier komplett.</p>
+<p>Stattdessen orchestriert <code>main.bicep</code>:</p>
+<ul>
+<li><code>modules/appservice.bicep</code> — App Service Plan (Linux, Standard-Tier <code>S1</code>), Web App mit PHP-Runtime, plus eine <code>"staging"</code>-Deployment-Slot für Lab 8.</li>
+<li><code>modules/mysql.bicep</code> — Azure Database for MySQL Flexible Server, Datenbank, Firewall-Regel. Deklariert deklarativ, was in Lab 6 per CLI (<code>az mysql flexible-server create</code> + <code>db create</code> + <code>firewall-rule create</code>) imperativ entstand.</li>
+</ul>
+<p><strong>Wichtiger Tier-Unterschied zu Lab 6:</strong> Lab 6 verwendete für den App Service Plan bewusst die günstige Basic-Stufe (<code>B1</code>), da dort keine Deployment-Slots gebraucht wurden. Deployment Slots werden laut Microsoft-Dokumentation (<code>learn.microsoft.com/azure/app-service/deploy-staging-slots</code>) <strong>erst ab der Standard-Stufe</strong> unterstützt — Basic reicht dafür nicht aus. Dieses Lab verwendet deshalb <code>S1</code> (Standard, bis zu 5 Slots) als bewusste Mindeststufe, da Lab 8 den <code>"staging"</code>-Slot für seine CI/CD-Pipeline braucht.</p>
+<h2>Repository-Struktur dieses Labs</h2>
+<div class="codehilite"><pre><span></span><code>Allfiles/07-app-service-bicep/
+  main.bicep              -- Orchestrierung: Parameter, Module, Outputs
+  main.bicepparam          -- Parameterwerte inkl. &lt;CHANGE_ME&gt;-Platzhalter
+  modules/
+    appservice.bicep         -- App Service Plan + Web App + &quot;staging&quot;-Slot
+    mysql.bicep               -- MySQL Flexible Server + Datenbank + Firewall-Regel
+</code></pre></div>
+
+<p>Dieselbe modulare Grundidee wie in Lab 4 — nur eben mit anderen Bausteinen, passend zur PaaS-Zielarchitektur.</p>
+<hr />
+<h2>Schritt 0: Voraussetzungen prüfen</h2>
+<div class="codehilite"><pre><span></span><code>az<span class="w"> </span>bicep<span class="w"> </span>upgrade
+</code></pre></div>
+
+<p>Wie in Lab 4: vor dem Kurstermin einmal explizit aktualisieren. Zusätzlich vor dem Kurstermin die beiden folgenden Werte gegen die aktuelle Azure-Dokumentation prüfen, da sie sich ändern können:</p>
+<div class="codehilite"><pre><span></span><code>az<span class="w"> </span>webapp<span class="w"> </span>list-runtimes<span class="w"> </span>--os<span class="w"> </span>linux<span class="w">    </span><span class="c1"># aktueller PHP-Versionsstring</span>
+az<span class="w"> </span>mysql<span class="w"> </span>flexible-server<span class="w"> </span>list-skus<span class="w"> </span>--location<span class="w"> </span>westeurope<span class="w"> </span>-o<span class="w"> </span>table<span class="w">   </span><span class="c1"># aktuelle SKU-/Versions-Verfügbarkeit</span>
+</code></pre></div>
+
+<h2>Schritt 1: Parameterdatei vorbereiten</h2>
+<p>In <code>Allfiles/07-app-service-bicep/main.bicepparam</code> den Platzhalter <code>&lt;CHANGE_ME_MYSQL_ADMIN_PASSWORD&gt;</code> durch ein echtes Kennwort ersetzen, das die MySQL-Flexible-Server-Kennwortregel erfüllt (mindestens 8 Zeichen, mindestens 3 der 4 Zeichenklassen: Groß-/Kleinbuchstaben, Ziffern, Sonderzeichen — vor dem Kurstermin gegen die aktuelle Validierungsregel prüfen). Ohne ein gültiges Kennwort schlägt das Deployment mit einem Validierungsfehler ab.</p>
+<h2>Schritt 2: Ressourcengruppe anlegen</h2>
+<div class="codehilite"><pre><span></span><code>az<span class="w"> </span>group<span class="w"> </span>create<span class="w"> </span>--name<span class="w"> </span>rg-appservice-lab-bicep<span class="w"> </span>--location<span class="w"> </span>westeurope
+</code></pre></div>
+
+<p>Bewusst ein eigener Name (<code>rg-appservice-lab-bicep</code>), getrennt von <code>rg-lamp-lab-bicep</code> (Lab 4) und <code>rg-appservice-lab</code> (Lab 6, falls dort ein eigener Name verwendet wurde) — so bleiben alle Labs unabhängig voneinander deploybar.</p>
+<h2>Schritt 3: Deployment vorab prüfen mit <code>what-if</code></h2>
+<div class="codehilite"><pre><span></span><code>az<span class="w"> </span>deployment<span class="w"> </span>group<span class="w"> </span>what-if<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resource-group<span class="w"> </span>rg-appservice-lab-bicep<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--template-file<span class="w"> </span>Allfiles/07-app-service-bicep/main.bicep<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--parameters<span class="w"> </span>Allfiles/07-app-service-bicep/main.bicepparam
+</code></pre></div>
+
+<p>Wie in Lab 4: unbedingt vor dem echten Deployment vorführen — bei einer Resource Group mit Ressourcen aus einem vorherigen Lauf zeigt <code>what-if</code> sofort, was sich ändern würde, bevor tatsächlich etwas passiert.</p>
+<h2>Schritt 4: Deployment ausführen</h2>
+<div class="codehilite"><pre><span></span><code>az<span class="w"> </span>deployment<span class="w"> </span>group<span class="w"> </span>create<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resource-group<span class="w"> </span>rg-appservice-lab-bicep<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--template-file<span class="w"> </span>Allfiles/07-app-service-bicep/main.bicep<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--parameters<span class="w"> </span>Allfiles/07-app-service-bicep/main.bicepparam<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span>lab7-appservice-deployment
+</code></pre></div>
+
+<p>Laufzeit: ca. 5-8 Minuten (MySQL Flexible Server braucht dabei erfahrungsgemäß den größten Anteil der Zeit — deutlich länger als die App-Service-Ressourcen selbst).</p>
+<h2>Schritt 5: Outputs abrufen</h2>
+<div class="codehilite"><pre><span></span><code>az<span class="w"> </span>deployment<span class="w"> </span>group<span class="w"> </span>show<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--resource-group<span class="w"> </span>rg-appservice-lab-bicep<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--name<span class="w"> </span>lab7-appservice-deployment<span class="w"> </span><span class="se">\</span>
+<span class="w">  </span>--query<span class="w"> </span>properties.outputs
+</code></pre></div>
+
+<p>Liefert <code>webAppName</code>, <code>wordpressUrl</code>, <code>stagingUrl</code> und <code>mysqlServerFqdn</code> — der tatsächliche Web-App-Name ist wegen <code>uniqueString(resourceGroup().id)</code> erst jetzt bekannt, nicht vorher planbar (siehe Kommentar in <code>modules/appservice.bicep</code>).</p>
+<h2>Schritt 6: WordPress-Setup öffnen</h2>
+<p>Anders als bei Lab 1/2/4 (VM + Cloud-Init) gibt es hier <strong>kein</strong> Cloud-Init-Wartefenster — sobald das Deployment abgeschlossen ist, ist die Web App sofort erreichbar (allerdings noch ohne WordPress-Code, siehe nächster Absatz). Das Deployment dieses Labs legt nur die <strong>Infrastruktur</strong> an (App Service Plan, Web App, Datenbank) — die eigentliche WordPress-Codebasis wird wie in Lab 6 separat per <code>az webapp deploy</code> hochgeladen (hier nicht wiederholt, siehe <code>Instructions/06-app-service-manual.md</code>, Schritt 5, für den identischen Befehl gegen den in Schritt 5 hier ermittelten Web-App-Namen).</p>
+<hr />
+<h2>Was bringt Bicep gegenüber der manuellen CLI (Lab 6) Neu?</h2>
+<p>Dieselben Vorteile wie bereits bei Lab 4 gegenüber Lab 1 besprochen (Deklarativ statt imperativ, Wiederholbarkeit/Idempotenz, <code>what-if</code> als Trockenlauf, kein State-File, Modularität) — hier zusätzlich konkret sichtbar: die MySQL-Firewall-Regel, die in Lab 6 leicht vergessen werden kann (App Service kann die Datenbank sonst nicht erreichen, siehe Troubleshooting dort), ist hier fester, nicht vergessbarer Teil von <code>modules/mysql.bicep</code>.</p>
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong>MySQL-Deployment schlägt mit einem Kennwort-Validierungsfehler fehl:</strong> <code>mysqlAdminPassword</code> in <code>main.bicepparam</code> erfüllt nicht die Komplexitätsregel (siehe Schritt 1) — häufigster Fehler bei diesem Lab.</li>
+<li><strong>Web App zeigt nach dem Deployment nur die Standard-Platzhalterseite:</strong> erwartetes Verhalten an dieser Stelle (siehe Schritt 6) — dieses Template legt nur die Infrastruktur an, der WordPress-Code muss wie in Lab 6, Schritt 5 noch separat deployt werden.</li>
+<li><strong><code>what-if</code> zeigt beim zweiten Lauf unerwartet eine Änderung an der Web App/Slot an, obwohl nichts geändert wurde:</strong> typischerweise, wenn zwischenzeitlich manuell im Portal App Settings geändert wurden (z. B. durch ein <code>az webapp deploy</code> mit eigenen zusätzlichen Settings) — Bicep erkennt das als Abweichung vom deklarierten Soll-Zustand, exakt wie bei Lab 4 besprochen.</li>
+<li><strong><code>InvalidTemplateDeployment</code> bei der Web App wegen des Plan-Tiers:</strong> wenn <code>appServicePlanSku</code> in <code>main.bicepparam</code> versehentlich auf eine Stufe unterhalb von Standard (z. B. <code>B1</code> oder <code>F1</code>) geändert wurde, schlägt die Erstellung der <code>"staging"</code>-Slot mit einem tier-bezogenen Fehler fehl (siehe Abschnitt "Was ist neu" oben).</li>
+<li><strong><code>ServerNameAlreadyExists</code> bei <code>mysqlServerName</code>:</strong> MySQL-Flexible-Server-Namen sind wie App-Service-Hostnamen global eindeutig; der Default nutzt bereits <code>uniqueString(resourceGroup().id)</code>, ein manuell überschriebener Name kann kollidieren.</li>
+</ul>
+<h2>Ausblick</h2>
+<p>Lab 8 (CI/CD mit GitHub Actions) nutzt genau die <code>"staging"</code>-Slot, die dieses Template anlegt: eine echte Pipeline baut den WordPress-Code, deployt ihn in diese Slot und tauscht sie anschließend per Swap in die Produktion — der Build-Deploy-Swap-Ablauf, der in Schritt 18 des Kurskonzepts (Deployment Slots, Slot Swap) vorbereitet wird.</p>
+<p>Punkt 20 des Kurskonzepts ("Leichter .NET-Checkpoint") spiegelt dieselbe <code>modules/appservice.bicep</code>-Vorlage kurz an der zweiten Beispielanwendung — konzeptionell, kein eigenes Vollab, analog zu den .NET-Checkpoints an Tag 1.</p>
+  </article>
+
+  <div class="lab-nav">
+    <a href="../index.html">&larr; Zur Lab-Übersicht</a>
+    <a href="https://github.com/tdrilling/azure-deployment-workshop-labs/blob/main/Instructions/07-app-service-bicep.md">Quelltext (Markdown) auf GitHub ansehen &rarr;</a>
+  </div>
+
+  <p class="credit">Thomas Drilling &middot; Microsoft Certified Trainer &middot; drilling-azure.de / cloudtrain.de</p>
+</div>
+</body>
+</html>

@@ -1,0 +1,400 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>WordPress deklarativ mit Terraform (einmalige Demonstration) — Azure Deployment Workshop</title>
+<style>
+  :root {
+    --bg: #0b0d10;
+    --bg-card: #14171c;
+    --bg-card-hover: #1a1e24;
+    --border: #262b33;
+    --orange: #f59e0b;
+    --orange-dim: #7a5109;
+    --text: #e8eaed;
+    --text-dim: #9aa1ab;
+    --text-faint: #5f6772;
+    --done: #34a853;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+  }
+  .wrap { max-width: 860px; margin: 0 auto; padding: 0 24px 90px; }
+  header.hero {
+    background: linear-gradient(160deg, #14171c 0%, #0b0d10 70%);
+    border-bottom: 1px solid var(--border);
+    padding: 28px 24px 30px;
+  }
+  header.hero .wrap { padding-bottom: 0; }
+  .crumb { font-size: 13.5px; margin: 0 0 16px; }
+  .crumb a { color: var(--orange); text-decoration: none; font-weight: 600; }
+  .crumb a:hover { text-decoration: underline; }
+  .eyebrow {
+    color: var(--orange); font-size: 13px; font-weight: 700;
+    letter-spacing: 0.08em; text-transform: uppercase; margin: 0 0 10px;
+    display: flex; align-items: center; gap: 10px;
+  }
+  .day-badge {
+    background: var(--orange); color: #1a1206; font-weight: 800; font-size: 12px;
+    border-radius: 6px; padding: 2px 9px; letter-spacing: 0.02em;
+  }
+  h1 { font-size: 28px; margin: 0; letter-spacing: -0.01em; line-height: 1.3; }
+
+  article { padding-top: 34px; }
+  article h2 {
+    font-size: 21px; margin: 40px 0 14px; padding-bottom: 8px;
+    border-bottom: 1px solid var(--border); color: var(--text);
+  }
+  article h2:first-child { margin-top: 0; }
+  article h3 { font-size: 17px; margin: 26px 0 10px; color: var(--text); }
+  article h4 { font-size: 14.5px; margin: 20px 0 8px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.03em; }
+  article p { color: var(--text-dim); font-size: 15.5px; margin: 0 0 14px; }
+  article strong { color: var(--text); }
+  article a { color: var(--orange); }
+  article ul, article ol { color: var(--text-dim); font-size: 15.5px; padding-left: 26px; margin: 0 0 16px; }
+  article li { margin-bottom: 6px; }
+  article li > p { margin-bottom: 6px; }
+  article code {
+    font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    background: var(--bg-card); border: 1px solid var(--border); border-radius: 4px;
+    padding: 1.5px 6px; font-size: 0.88em; color: #ffb454;
+  }
+  article pre { margin: 0 0 18px; padding: 0; }
+  article pre code {
+    display: block; padding: 16px 18px; overflow-x: auto; border-radius: 10px;
+    background: #0d1117; border: 1px solid var(--border); color: var(--text);
+    font-size: 13.5px; line-height: 1.55;
+  }
+  .codehilite { margin: 0 0 18px; border-radius: 10px; border: 1px solid var(--border); overflow: hidden; }
+  .codehilite pre { margin: 0; padding: 16px 18px; overflow-x: auto; background: #0d1117 !important; font-size: 13.5px; line-height: 1.55; }
+  pre { line-height: 125%; }
+td.linenos .normal { color: #6e7681; background-color: #0d1117; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: #6e7681; background-color: #0d1117; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #e6edf3; background-color: #6e7681; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #e6edf3; background-color: #6e7681; padding-left: 5px; padding-right: 5px; }
+.codehilite .hll { background-color: #6e7681 }
+.codehilite { background: #0d1117; color: #E6EDF3 }
+.codehilite .c { color: #8B949E; font-style: italic } /* Comment */
+.codehilite .err { color: #F85149 } /* Error */
+.codehilite .esc { color: #E6EDF3 } /* Escape */
+.codehilite .g { color: #E6EDF3 } /* Generic */
+.codehilite .k { color: #FF7B72 } /* Keyword */
+.codehilite .l { color: #A5D6FF } /* Literal */
+.codehilite .n { color: #E6EDF3 } /* Name */
+.codehilite .o { color: #FF7B72; font-weight: bold } /* Operator */
+.codehilite .x { color: #E6EDF3 } /* Other */
+.codehilite .p { color: #E6EDF3 } /* Punctuation */
+.codehilite .ch { color: #8B949E; font-style: italic } /* Comment.Hashbang */
+.codehilite .cm { color: #8B949E; font-style: italic } /* Comment.Multiline */
+.codehilite .cp { color: #8B949E; font-weight: bold; font-style: italic } /* Comment.Preproc */
+.codehilite .cpf { color: #8B949E; font-style: italic } /* Comment.PreprocFile */
+.codehilite .c1 { color: #8B949E; font-style: italic } /* Comment.Single */
+.codehilite .cs { color: #8B949E; font-weight: bold; font-style: italic } /* Comment.Special */
+.codehilite .gd { color: #FFA198; background-color: #490202 } /* Generic.Deleted */
+.codehilite .ge { color: #E6EDF3; font-style: italic } /* Generic.Emph */
+.codehilite .ges { color: #E6EDF3; font-weight: bold; font-style: italic } /* Generic.EmphStrong */
+.codehilite .gr { color: #FFA198 } /* Generic.Error */
+.codehilite .gh { color: #79C0FF; font-weight: bold } /* Generic.Heading */
+.codehilite .gi { color: #56D364; background-color: #0F5323 } /* Generic.Inserted */
+.codehilite .go { color: #8B949E } /* Generic.Output */
+.codehilite .gp { color: #8B949E } /* Generic.Prompt */
+.codehilite .gs { color: #E6EDF3; font-weight: bold } /* Generic.Strong */
+.codehilite .gu { color: #79C0FF } /* Generic.Subheading */
+.codehilite .gt { color: #FF7B72 } /* Generic.Traceback */
+.codehilite .g-Underline { color: #E6EDF3; text-decoration: underline } /* Generic.Underline */
+.codehilite .kc { color: #79C0FF } /* Keyword.Constant */
+.codehilite .kd { color: #FF7B72 } /* Keyword.Declaration */
+.codehilite .kn { color: #FF7B72 } /* Keyword.Namespace */
+.codehilite .kp { color: #79C0FF } /* Keyword.Pseudo */
+.codehilite .kr { color: #FF7B72 } /* Keyword.Reserved */
+.codehilite .kt { color: #FF7B72 } /* Keyword.Type */
+.codehilite .ld { color: #79C0FF } /* Literal.Date */
+.codehilite .m { color: #A5D6FF } /* Literal.Number */
+.codehilite .s { color: #A5D6FF } /* Literal.String */
+.codehilite .na { color: #E6EDF3 } /* Name.Attribute */
+.codehilite .nb { color: #E6EDF3 } /* Name.Builtin */
+.codehilite .nc { color: #F0883E; font-weight: bold } /* Name.Class */
+.codehilite .no { color: #79C0FF; font-weight: bold } /* Name.Constant */
+.codehilite .nd { color: #D2A8FF; font-weight: bold } /* Name.Decorator */
+.codehilite .ni { color: #FFA657 } /* Name.Entity */
+.codehilite .ne { color: #F0883E; font-weight: bold } /* Name.Exception */
+.codehilite .nf { color: #D2A8FF; font-weight: bold } /* Name.Function */
+.codehilite .nl { color: #79C0FF; font-weight: bold } /* Name.Label */
+.codehilite .nn { color: #FF7B72 } /* Name.Namespace */
+.codehilite .nx { color: #E6EDF3 } /* Name.Other */
+.codehilite .py { color: #79C0FF } /* Name.Property */
+.codehilite .nt { color: #7EE787 } /* Name.Tag */
+.codehilite .nv { color: #79C0FF } /* Name.Variable */
+.codehilite .ow { color: #FF7B72; font-weight: bold } /* Operator.Word */
+.codehilite .pm { color: #E6EDF3 } /* Punctuation.Marker */
+.codehilite .w { color: #6E7681 } /* Text.Whitespace */
+.codehilite .mb { color: #A5D6FF } /* Literal.Number.Bin */
+.codehilite .mf { color: #A5D6FF } /* Literal.Number.Float */
+.codehilite .mh { color: #A5D6FF } /* Literal.Number.Hex */
+.codehilite .mi { color: #A5D6FF } /* Literal.Number.Integer */
+.codehilite .mo { color: #A5D6FF } /* Literal.Number.Oct */
+.codehilite .sa { color: #79C0FF } /* Literal.String.Affix */
+.codehilite .sb { color: #A5D6FF } /* Literal.String.Backtick */
+.codehilite .sc { color: #A5D6FF } /* Literal.String.Char */
+.codehilite .dl { color: #79C0FF } /* Literal.String.Delimiter */
+.codehilite .sd { color: #A5D6FF } /* Literal.String.Doc */
+.codehilite .s2 { color: #A5D6FF } /* Literal.String.Double */
+.codehilite .se { color: #79C0FF } /* Literal.String.Escape */
+.codehilite .sh { color: #79C0FF } /* Literal.String.Heredoc */
+.codehilite .si { color: #A5D6FF } /* Literal.String.Interpol */
+.codehilite .sx { color: #A5D6FF } /* Literal.String.Other */
+.codehilite .sr { color: #79C0FF } /* Literal.String.Regex */
+.codehilite .s1 { color: #A5D6FF } /* Literal.String.Single */
+.codehilite .ss { color: #A5D6FF } /* Literal.String.Symbol */
+.codehilite .bp { color: #E6EDF3 } /* Name.Builtin.Pseudo */
+.codehilite .fm { color: #D2A8FF; font-weight: bold } /* Name.Function.Magic */
+.codehilite .vc { color: #79C0FF } /* Name.Variable.Class */
+.codehilite .vg { color: #79C0FF } /* Name.Variable.Global */
+.codehilite .vi { color: #79C0FF } /* Name.Variable.Instance */
+.codehilite .vm { color: #79C0FF } /* Name.Variable.Magic */
+.codehilite .il { color: #A5D6FF } /* Literal.Number.Integer.Long */
+
+  article table {
+    width: 100%; border-collapse: collapse; margin: 0 0 20px; font-size: 14.5px;
+  }
+  article th, article td {
+    text-align: left; padding: 9px 14px; border: 1px solid var(--border);
+  }
+  article th { background: var(--bg-card); color: var(--text); font-weight: 700; }
+  article td { color: var(--text-dim); }
+  article blockquote {
+    margin: 0 0 18px; padding: 14px 18px; background: var(--bg-card);
+    border: 1px solid var(--orange-dim); border-left: 3px solid var(--orange);
+    border-radius: 8px; color: var(--text-dim); font-size: 14.5px;
+  }
+  article blockquote p { margin: 0; color: var(--text-dim); }
+  article blockquote p + p { margin-top: 8px; }
+  article hr { border: none; border-top: 1px solid var(--border); margin: 32px 0; }
+
+  .lab-nav {
+    display: flex; justify-content: space-between; gap: 16px; margin-top: 48px;
+    padding-top: 24px; border-top: 1px solid var(--border);
+  }
+  .lab-nav a {
+    color: var(--text-dim); text-decoration: none; font-size: 14px;
+    border: 1px solid var(--border); border-radius: 8px; padding: 10px 16px;
+    background: var(--bg-card);
+  }
+  .lab-nav a:hover { color: var(--orange); border-color: var(--orange-dim); }
+
+  .credit { color: var(--text-faint); font-size: 12.5px; margin-top: 40px; }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <p class="crumb"><a href="../index.html">&larr; Zur Lab-Übersicht</a></p>
+    <p class="eyebrow"><span class="day-badge">Tag 2</span>Lab 05 &middot; Azure Deployment Workshop</p>
+    <h1>WordPress deklarativ mit Terraform (einmalige Demonstration)</h1>
+  </div>
+</header>
+
+<div class="wrap">
+  <article>
+<p><strong>Ziel:</strong> Dieselbe Zielarchitektur wie in Lab 4 (Apache/PHP/MySQL/WordPress auf einer Ubuntu-VM, VNet/Subnet/NSG/Public-IP/NIC), diesmal mit <strong>Terraform</strong> statt Bicep/ARM deployt — nicht um Terraform als zweites durchgängiges IaC-Werkzeug im Kurs zu etablieren, sondern um den State-Datei-basierten Ansatz einmal konkret dem State-losen Modell aus Lab 4 gegenüberzustellen. Der Kurs bleibt danach bei Bicep/ARM als Microsoft-eigenen Werkzeugen (siehe "Terraform vs. Bicep" unten). Dateien: <code>Allfiles/05-terraform/main.tf</code>, <code>Allfiles/05-terraform/modules/network/</code>, <code>Allfiles/05-terraform/modules/vm/</code>, <code>Allfiles/05-terraform/terraform.tfvars.example</code>.</p>
+<p><strong>Dauer:</strong> ca. 30-40 Minuten.</p>
+<hr />
+<h2>Was ist neu gegenüber Lab 4 (Bicep)?</h2>
+<p>Funktional ändert sich in diesem Lab <strong>nichts</strong> an der Zielarchitektur — dieselbe VM, dasselbe VNet, dieselbe NSG mit denselben zwei Regeln, dieselbe Public IP, dasselbe Cloud-Init. Was sich ändert, ist ausschließlich das Werkzeug, mit dem diese Ressourcen deklariert werden — und genau ein konzeptioneller Punkt daran verdient die volle Aufmerksamkeit des Kurses:</p>
+<p><strong>Terraform hat eine explizite State-Datei. Bicep/ARM hat keine.</strong></p>
+<p>In Lab 4 wurde erläutert, dass ARM bei jedem Deployment den tatsächlichen Zustand der Resource Group live abfragt — die Resource Group selbst ist der (implizite) "State". Es gibt keine separate Datei, die Azure oder die Bicep-CLI zwischen zwei Deployments pflegt.</p>
+<p>Terraform funktioniert grundlegend anders: Nach jedem <code>terraform apply</code> schreibt Terraform eine <code>terraform.tfstate</code>-Datei, die für <strong>jede</strong> verwaltete Ressource eine eigene, vom Provider zurückgelieferte Repräsentation enthält (Resource-IDs, alle Attribute, teils auch sensible Werte wie den Base64-kodierten <code>custom_data</code>-Inhalt). Jeder weitere <code>terraform plan</code>/<code>apply</code>-Lauf vergleicht <strong>drei</strong> Zustände miteinander — nicht nur zwei wie bei ARM:</p>
+<ol>
+<li>den <strong>gewünschten</strong> Zustand (die <code>.tf</code>-Dateien),</li>
+<li>den <strong>zuletzt bekannten</strong> Zustand (die State-Datei),</li>
+<li>den <strong>tatsächlichen</strong> Zustand in Azure (per Provider-API abgefragt, sogenannter "Refresh").</li>
+</ol>
+<p>Das eröffnet eine ganze Fehlerklasse, die es bei Bicep/ARM schlicht nicht gibt:</p>
+<ul>
+<li><strong>State-Drift:</strong> Jemand ändert eine Ressource manuell im Portal (z. B. eine NSG-Regel) — die State-Datei weiß davon zunächst nichts, bis der nächste <code>plan</code>/<code>apply</code> einen Refresh durchführt und die Abweichung anzeigt (oder sie überschreibt).</li>
+<li><strong>State-Locking:</strong> Arbeiten zwei Personen gleichzeitig gegen dieselbe State-Datei, kann es zu widersprüchlichen Schreibvorgängen kommen — bei lokalem State (wie in diesem Lab) gibt es dafür <strong>kein</strong> eingebautes Locking, siehe Troubleshooting unten. Erst ein Remote-Backend (siehe unten) bringt Locking mit.</li>
+<li><strong>State-Verlust:</strong> Geht <code>terraform.tfstate</code> verloren (versehentlich gelöscht, nicht gesichert), "vergisst" Terraform, welche realen Azure-Ressourcen es verwaltet — ein erneutes <code>apply</code> würde versuchen, alles neu anzulegen, meist mit Namenskonflikten als Symptom.</li>
+</ul>
+<p>Deshalb landet <code>terraform.tfstate</code> in <code>Allfiles/05-terraform/.gitignore</code> (siehe Repository-Struktur unten) — sie darf <strong>niemals</strong> ins Repository. Für dieses einmalige Kurs-Lab bleibt der State bewusst <strong>lokal</strong> (Default-Backend). Für Team- oder Produktivbetrieb gehört der State stattdessen in ein <strong>Remote-Backend mit Locking</strong>, z. B. einen Azure-Storage-Account (<code>backend "azurerm" { ... }</code>, ein Kommentarblock dazu findet sich bereits vorbereitet in <code>main.tf</code>) — das wird in diesem Lab <strong>nicht</strong> aufgebaut, nur als Produktionshinweis erwähnt.</p>
+<p>Ein zweiter, kleinerer Unterschied: Bicep wird gegen eine vorab per <code>az group create</code> angelegte Resource Group deployt (<code>targetScope = 'resourceGroup'</code>, siehe Lab 4, Schritt 2). Terraform-Deployments sind grundsätzlich auf Subscription-Ebene angesiedelt — die Resource Group ist deshalb hier selbst eine von <code>main.tf</code> verwaltete Ressource (<code>azurerm_resource_group.main</code>) und landet mit im State. Ein separater "Resource-Group-anlegen"-Schritt vor dem Deployment entfällt dadurch gegenüber Lab 4.</p>
+<p>Wie in Lab 4 wird auch hier Lab 2s Cloud-Init <strong>wiederverwendet, nicht dupliziert</strong> (siehe Abschnitt "Wiederverwendung von Lab 2" unten) — Terraform übernimmt wie Bicep ausschließlich die Infrastruktur-Deklaration.</p>
+<h2>Repository-Struktur dieses Labs</h2>
+<div class="codehilite"><pre><span></span><code>Allfiles/05-terraform/
+  main.tf                        -- Orchestrierung: Provider, Resource Group, Module, Outputs
+  variables.tf                    -- Root-Variablen (inkl. Pflichtvariable admin_ssh_public_key)
+  outputs.tf                      -- Root-Outputs (vm_name, public_ip_address, fqdn, ssh_command, wordpress_url)
+  terraform.tfvars.example        -- Beispiel-Variablenwerte inkl. &lt;CHANGE_ME&gt;-Platzhalter
+  .gitignore                      -- schliesst u.a. *.tfstate und *.tfvars vom Repo aus
+  modules/
+    network/                      -- VNet/Subnet/NSG/Public-IP/NIC
+      main.tf
+      variables.tf
+      outputs.tf
+    vm/                            -- die VM-Ressource selbst, inkl. Cloud-Init-Einbindung
+      main.tf
+      variables.tf
+      outputs.tf
+</code></pre></div>
+
+<p>Dieselbe modulare Aufteilung wie in Lab 4 (<code>modules/network.bicep</code> → <code>modules/network/</code>, <code>modules/vm.bicep</code> → <code>modules/vm/</code>) — bewusst 1:1 nachgebildet, damit der Vergleich der beiden Werkzeuge nebeneinander möglich ist, ohne dass sich die Grundstruktur ändert. Terraform kennt keine Ein-Datei-Module wie Bicep; jedes Modul ist hier ein eigenes Verzeichnis mit <code>main.tf</code>/<code>variables.tf</code>/<code>outputs.tf</code> als Konvention (nicht zwingend vorgeschrieben, aber Community-Standard).</p>
+<hr />
+<h2>Schritt 0: Voraussetzungen prüfen</h2>
+<div class="codehilite"><pre><span></span><code>terraform<span class="w"> </span>version
+az<span class="w"> </span>version
+</code></pre></div>
+
+<p>Terraform-CLI wird — anders als die Bicep-CLI in Lab 4 — <strong>nicht</strong> automatisch von der Azure CLI mitgebracht und muss separat installiert werden (z. B. über das offizielle HashiCorp-APT-Repository oder einen Binary-Download von <code>releases.hashicorp.com</code>). Getestet gegen Terraform ≥ 1.7 und den <code>azurerm</code>-Provider <code>~&gt; 4.0</code> (siehe <code>required_providers</code>-Block in <code>main.tf</code>).</p>
+<p>Zusätzlich per Azure CLI angemeldet sein — der <code>azurerm</code>-Provider nutzt standardmäßig denselben Anmeldekontext wie <code>az</code>:</p>
+<div class="codehilite"><pre><span></span><code>az<span class="w"> </span>login
+az<span class="w"> </span>account<span class="w"> </span>show
+</code></pre></div>
+
+<p>Den SSH-Schlüssel aus Lab 1 wiederverwenden — falls noch nicht vorhanden: siehe <code>Instructions/01-manual-lamp.md</code>, Schritt 0.</p>
+<h2>Schritt 1: Variablendatei vorbereiten</h2>
+<div class="codehilite"><pre><span></span><code><span class="nb">cd</span><span class="w"> </span>Allfiles/05-terraform
+cp<span class="w"> </span>terraform.tfvars.example<span class="w"> </span>terraform.tfvars
+</code></pre></div>
+
+<p>In <code>terraform.tfvars</code> den Platzhalter <code>&lt;CHANGE_ME_SSH_PUBLIC_KEY&gt;</code> durch den Inhalt von <code>~/.ssh/workshop_lab.pub</code> ersetzen:</p>
+<div class="codehilite"><pre><span></span><code>cat<span class="w"> </span>~/.ssh/workshop_lab.pub
+</code></pre></div>
+
+<p>Ausgabe 1:1 in die Zeile <code>admin_ssh_public_key = "&lt;CHANGE_ME_SSH_PUBLIC_KEY&gt;"</code> einfügen. <strong>Zusätzlich</strong>, wie schon in Lab 2/4: In <code>Allfiles/02-cloud-init/cloud-init.yaml</code> alle Vorkommen von <code>&lt;CHANGE_ME&gt;</code> (Datenbank-Kennwort) ersetzen, <strong>bevor</strong> deployt wird — <code>modules/vm/main.tf</code> liest diese Datei per <code>filebase64()</code> direkt von der Festplatte ein (siehe "Wiederverwendung von Lab 2" unten); eine spätere Änderung nach dem Apply wirkt sich erst mit einem erneuten <code>apply</code> aus.</p>
+<p><code>terraform.tfvars</code> selbst wird von <code>.gitignore</code> vom Repository ausgeschlossen (siehe Repository-Struktur) — nur <code>terraform.tfvars.example</code> mit dem Platzhalter ist versioniert.</p>
+<h2>Schritt 2: Terraform initialisieren</h2>
+<div class="codehilite"><pre><span></span><code>terraform<span class="w"> </span>init
+</code></pre></div>
+
+<p>Lädt den <code>azurerm</code>- und den <code>random</code>-Provider (siehe <code>required_providers</code> in <code>main.tf</code>) in ein lokales <code>.terraform/</code>-Verzeichnis und erzeugt/aktualisiert <code>.terraform.lock.hcl</code> mit den exakten Provider-Versionen. Dieser Schritt hat <strong>kein</strong> Bicep-Äquivalent — <code>az bicep upgrade</code> (Lab 4) aktualisiert die Bicep-CLI selbst, <code>terraform init</code> dagegen lädt pro Projekt die dort deklarierten Provider-Plugins herunter. Nach Änderungen am <code>required_providers</code>-Block oder an <code>module</code>-Quellen muss <code>terraform init</code> erneut laufen.</p>
+<h2>Schritt 3: Deployment vorab prüfen mit <code>plan</code></h2>
+<div class="codehilite"><pre><span></span><code>terraform<span class="w"> </span>plan<span class="w"> </span>-var-file<span class="o">=</span><span class="s2">&quot;terraform.tfvars&quot;</span>
+</code></pre></div>
+
+<p><code>terraform plan</code> ist Terraforms Äquivalent zu <code>az deployment group what-if</code> aus Lab 4: Es zeigt an, was <strong>neu angelegt</strong> (<code>+</code>), <strong>geändert</strong> (<code>~</code>) oder <strong>gelöscht</strong> (<code>-</code>) würde, ohne tatsächlich etwas zu verändern. Der wesentliche Unterschied zu <code>what-if</code>: <code>plan</code> vergleicht dabei nicht nur gegen den echten Azure-Zustand, sondern <strong>zusätzlich</strong> gegen die lokale State-Datei (siehe "Was ist neu gegenüber Lab 4" oben) — bei einem noch leeren/nicht existierenden State (wie beim allerersten Lauf in diesem Lab) zeigt <code>plan</code> konsequent <strong>alle</strong> Ressourcen als Neuanlage (<code>+</code>) an.</p>
+<h2>Schritt 4: Deployment ausführen</h2>
+<div class="codehilite"><pre><span></span><code>terraform<span class="w"> </span>apply<span class="w"> </span>-var-file<span class="o">=</span><span class="s2">&quot;terraform.tfvars&quot;</span>
+</code></pre></div>
+
+<p>Terraform zeigt denselben Plan wie in Schritt 3 noch einmal an und fragt interaktiv nach Bestätigung (<code>Enter a value: yes</code>) — für einen nicht-interaktiven Lauf (z. B. CI/CD, hier nicht Thema) gibt es <code>-auto-approve</code>. Nach Abschluss aktualisiert Terraform <code>terraform.tfstate</code> mit dem neuen Ist-Zustand. Laufzeit: ca. 3-5 Minuten für die Infrastruktur, analog zu Lab 4; WordPress selbst ist danach über Cloud-Init noch nicht sofort fertig (siehe Schritt 6).</p>
+<h2>Schritt 5: Outputs abrufen</h2>
+<div class="codehilite"><pre><span></span><code>terraform<span class="w"> </span>output
+</code></pre></div>
+
+<p>Liefert <code>vm_name</code>, <code>public_ip_address</code>, <code>fqdn</code>, <code>ssh_command</code> und <code>wordpress_url</code> direkt aus <code>outputs.tf</code> zurück — inhaltlich dieselben fünf Werte wie Lab 4s Bicep-Outputs, hier in Terraforms üblicher <code>snake_case</code>-Schreibweise statt Biceps <code>camelCase</code>. Einzelne Werte lassen sich unformatiert abrufen (praktisch für Skripting, analog zu Lab 4s <code>--query</code>):</p>
+<div class="codehilite"><pre><span></span><code>terraform<span class="w"> </span>output<span class="w"> </span>-raw<span class="w"> </span>public_ip_address
+terraform<span class="w"> </span>output<span class="w"> </span>-raw<span class="w"> </span>wordpress_url
+</code></pre></div>
+
+<h2>Schritt 6: Cloud-Init abwarten und WordPress-Setup öffnen</h2>
+<p>Exakt wie in Lab 2/4 — die VM ist bereits "Running", bevor Cloud-Init fertig ist:</p>
+<div class="codehilite"><pre><span></span><code>ssh<span class="w"> </span>-i<span class="w"> </span>~/.ssh/workshop_lab<span class="w"> </span>azureuser@<span class="k">$(</span>terraform<span class="w"> </span>output<span class="w"> </span>-raw<span class="w"> </span>public_ip_address<span class="k">)</span><span class="w"> </span><span class="s2">&quot;cloud-init status --wait&quot;</span>
+</code></pre></div>
+
+<p>Danach die <code>wordpress_url</code> aus Schritt 5 im Browser öffnen — das WordPress-Setup erscheint, identisch zu Lab 1/2/4.</p>
+<h2>Schritt 7: Aufräumen mit <code>destroy</code></h2>
+<div class="codehilite"><pre><span></span><code>terraform<span class="w"> </span>destroy<span class="w"> </span>-var-file<span class="o">=</span><span class="s2">&quot;terraform.tfvars&quot;</span>
+</code></pre></div>
+
+<p>Auch das ist neu gegenüber Lab 4: Weil Terraform in der State-Datei genau weiß, welche Ressourcen es angelegt hat, kann es sie gezielt und vollständig wieder entfernen — inklusive der in diesem Lab von <code>main.tf</code> selbst angelegten Resource Group. Ein Äquivalent zu <code>az group delete --name rg-lamp-lab-tf --yes</code> (das bei Bicep der übliche Aufräumweg ist, weil ARM die Resource Group ja gar nicht selbst angelegt hat) funktioniert hier zwar auch, <code>terraform destroy</code> ist aber der zum Werkzeug passende, State-bewusste Weg und sollte im Kurs als solcher vorgeführt werden — gerade weil dieses Lab als einmalige Demonstration angelegt ist und nach dem Termin nichts an ungenutzten Ressourcen zurückbleiben soll.</p>
+<hr />
+<h2>Wiederverwendung von Lab 2</h2>
+<p>Wie schon in Lab 4 bindet auch dieses Lab <strong>keine eigene</strong> Konfigurationslogik ein, sondern die bereits geprüfte <code>Allfiles/02-cloud-init/cloud-init.yaml</code> direkt — diesmal in <code>modules/vm/main.tf</code>:</p>
+<div class="codehilite"><pre><span></span><code><span class="nb">locals</span><span class="w"> </span><span class="p">{</span>
+<span class="w">  </span><span class="na">custom_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nf">filebase64</span><span class="p">(</span><span class="s2">&quot;${path.module}/../../../02-cloud-init/cloud-init.yaml&quot;</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="kr">resource</span><span class="w"> </span><span class="nc">&quot;azurerm_linux_virtual_machine&quot;</span><span class="w"> </span><span class="nv">&quot;vm&quot;</span><span class="w"> </span><span class="p">{</span>
+<span class="c1">  # ...</span>
+<span class="w">  </span><span class="na">custom_data</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="nv">local.custom_data</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p><code>filebase64()</code> ist Terraforms Äquivalent zu Biceps <code>base64(loadTextContent(...))</code> (Lab 4) in einem einzigen Funktionsaufruf: Es liest die Datei zur Plan-/Apply-Zeit von der lokalen Festplatte und liefert sie direkt Base64-kodiert zurück. Wichtig für den Vortrag, exakt wie in Lab 4: Azure kodiert <code>custom_data</code> <strong>nicht</strong> automatisch — anders als die Azure-CLI bei <code>--custom-data</code> in Lab 2. <code>filebase64()</code> übernimmt diese Kodierung explizit, genau wie in Lab 4 <code>base64(...)</code> das getan hat.</p>
+<p>Der Pfad <code>../../../02-cloud-init/cloud-init.yaml</code> wird relativ zu <strong>diesem Modulverzeichnis</strong> aufgelöst (<code>Allfiles/05-terraform/modules/vm/</code>, per <code>path.module</code>), nicht relativ zum Arbeitsverzeichnis, aus dem <code>terraform apply</code> aufgerufen wird — ein Terraform-spezifischer Stolperpunkt, der im Kurs kurz erwähnt werden sollte: Ein bare-relativer Pfad ohne <code>${path.module}</code> funktioniert bei lokalen Modulen zwar meist ebenso, ist aber nicht garantiert robust gegen jede Aufrufart und sollte deshalb immer explizit mit <code>path.module</code> kombiniert werden. Drei Ebenen nach oben (<code>vm/</code> → <code>modules/</code> → <code>05-terraform/</code> → <code>Allfiles/</code>) führen zu <code>Allfiles/02-cloud-init/cloud-init.yaml</code>.</p>
+<p>Das Ergebnis, identisch zu Lab 4: Terraform ist ausschließlich für die <strong>Infrastruktur</strong> zuständig, Cloud-Init bleibt ausschließlich für die <strong>Software-Konfiguration</strong> zuständig — kein Duplikat-Skript.</p>
+<h2>Terraform vs. Bicep — was bringt welches Werkzeug?</h2>
+<p>Dieses Lab ist als <strong>einmalige Gegenüberstellung</strong> angelegt, nicht als Einstieg in einen parallelen zweiten IaC-Track. Der Kurs bleibt danach bei Bicep/ARM, weil das die Microsoft-eigenen, nativ in Azure CLI/Portal integrierten Werkzeuge sind ("es geht auch so" ist die Kernbotschaft dieses Labs, nicht "ab jetzt Terraform"). Trotzdem lohnt sich der direkte Vergleich:</p>
+<table>
+<thead>
+<tr>
+<th>Aspekt</th>
+<th>Bicep/ARM (Lab 4)</th>
+<th>Terraform (dieses Lab)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>State</td>
+<td>keiner — Resource Group ist der (implizite) Ist-Zustand</td>
+<td>explizite <code>terraform.tfstate</code>-Datei, muss geschützt/gesichert werden</td>
+</tr>
+<tr>
+<td>Scope</td>
+<td>Resource-Group-Scope (RG muss vorab existieren)</td>
+<td>i. d. R. Subscription-Scope (RG kann Teil des Deployments sein)</td>
+</tr>
+<tr>
+<td>Cloud-Abdeckung</td>
+<td>nur Azure</td>
+<td>multi-Cloud-fähig (AWS, GCP, ... — hier nicht relevant, da reines Azure-Lab)</td>
+</tr>
+<tr>
+<td>Trockenlauf</td>
+<td><code>az deployment group what-if</code></td>
+<td><code>terraform plan</code></td>
+</tr>
+<tr>
+<td>Sprache</td>
+<td>Bicep (kompiliert zu ARM-JSON)</td>
+<td>HCL (HashiCorp Configuration Language)</td>
+</tr>
+<tr>
+<td>Herstellerbindung</td>
+<td>Microsoft-eigenes Werkzeug, tief in <code>az</code>/Portal integriert</td>
+<td>herstellerunabhängiges Open-Source-Werkzeug (HashiCorp/IBM)</td>
+</tr>
+<tr>
+<td>Modul-Format</td>
+<td>eine <code>.bicep</code>-Datei pro Modul</td>
+<td>ein Verzeichnis pro Modul (<code>main.tf</code>/<code>variables.tf</code>/<code>outputs.tf</code>)</td>
+</tr>
+<tr>
+<td>Aufräumen</td>
+<td><code>az group delete</code> (State-los, daher unkompliziert)</td>
+<td><code>terraform destroy</code> (State-bewusst, gezielt)</td>
+</tr>
+</tbody>
+</table>
+<p>Keines der beiden Werkzeuge ist in diesem Vergleich "besser" — beide erreichen dieselbe deklarative Zielsetzung (siehe Lab 4, Abschnitt "Was bringt Bicep gegenüber Cloud-Init/CLI Neu?"). Terraforms State-Modell ist der Preis für Multi-Cloud-Fähigkeit und einen von Azure unabhängigen Werkzeugstand; Biceps State-Losigkeit ist der Vorteil eines Werkzeugs, das ausschließlich für eine einzige Plattform gebaut ist. Für diesen Kurs, der sich explizit auf Azure konzentriert, bleibt Bicep/ARM deshalb das durchgängige Werkzeug — dieses Lab zeigt lediglich, dass die Alternative existiert und wie sie sich anfühlt.</p>
+<hr />
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong><code>Error: Invalid provider configuration</code> / Terraform findet keine Azure-Anmeldung:</strong> <code>az login</code> wurde nicht (oder mit einem abgelaufenen Token) ausgeführt — der <code>azurerm</code>-Provider nutzt standardmäßig den aktuellen <code>az</code>-Anmeldekontext. Mit <code>az account show</code> prüfen; <code>az login</code> erneut ausführen, falls nötig.</li>
+<li><strong><code>Error: creating/updating ...: ... InvalidParameter ... publicKeys</code></strong> o. ä. beim <code>apply</code>: <code>admin_ssh_public_key</code> in <code>terraform.tfvars</code> wurde nicht ersetzt (Platzhalter <code>&lt;CHANGE_ME_SSH_PUBLIC_KEY&gt;</code> ist kein gültiger SSH-Key) — Schritt 1 nachholen.</li>
+<li><strong><code>Error: Missing required argument</code> für <code>admin_ssh_public_key</code> direkt bei <code>terraform plan</code>:</strong> <code>terraform.tfvars</code> existiert nicht oder wurde nicht mit <code>-var-file</code> übergeben — Terraform lädt eine Datei mit exakt diesem Namen zwar automatisch, ein Tippfehler im Dateinamen (z. B. <code>terraform.tfvar</code>) wird aber nicht erkannt.</li>
+<li><strong><code>Error acquiring the state lock</code> / <code>Error: Error locking state</code>:</strong> Bei <strong>lokalem</strong> State (Default in diesem Lab) tritt das i. d. R. nur auf, wenn ein vorheriger <code>terraform apply</code>/<code>plan</code>-Lauf abrupt abgebrochen wurde (z. B. Strg+C) und eine Lock-Datei zurückgelassen hat — mit <code>terraform force-unlock &lt;LOCK-ID&gt;</code> auflösen (die Lock-ID steht in der Fehlermeldung), aber nur, wenn wirklich sicher ist, dass kein anderer Prozess gerade schreibt. Bei einem <strong>Remote</strong>-Backend (siehe Produktionshinweis oben, hier nicht aufgebaut) tritt derselbe Fehler typischerweise auf, wenn zwei Personen gleichzeitig <code>apply</code> ausführen — dort ist das Locking tatsächlich der gewünschte Schutzmechanismus, nicht ein Fehler.</li>
+<li><strong><code>terraform plan</code> zeigt beim zweiten Lauf unerwartete Änderungen (<code>~</code>), obwohl an den <code>.tf</code>-Dateien nichts geändert wurde:</strong> meist ein Zeichen, dass sich ein Variablenwert geändert hat (z. B. eine andere <code>terraform.tfvars</code> oder ein anderer <code>-var</code>-Wert als beim letzten <code>apply</code>) oder dass jemand die Ressource manuell im Portal verändert hat (State-Drift, siehe "Was ist neu gegenüber Lab 4" oben) — <code>plan</code> zeigt in der Ausgabe genau, welches Attribut sich unterscheidet, dort ansetzen statt blind <code>apply</code> laufen zu lassen.</li>
+<li><strong><code>Error: Failed to read file</code> beim <code>filebase64()</code>-Aufruf in <code>modules/vm/main.tf</code>:</strong> <code>Allfiles/02-cloud-init/cloud-init.yaml</code> fehlt oder wurde verschoben — Terraform löst den Pfad relativ zum Modulverzeichnis auf (siehe "Wiederverwendung von Lab 2" oben); ein direkter Aufruf von <code>terraform</code> aus einem anderen Verzeichnis als <code>Allfiles/05-terraform/</code> ändert daran nichts, ein verschobenes <code>cloud-init.yaml</code> dagegen schon.</li>
+<li><strong><code>terraform init</code> schlägt mit einem Netzwerk-/TLS-Fehler beim Herunterladen der Provider fehl:</strong> In restriktiven Netzwerken (Firmen-Proxy, gesperrte Registry-Domains) muss <code>registry.terraform.io</code> erreichbar sein; ersatzweise lässt sich ein Provider-Mirror konfigurieren (<code>terraform { provider_installation { ... } }</code> in einer CLI-Konfigurationsdatei) — für den Kurstermin vorab einmal <code>terraform init</code> von einem Teilnehmer-Netzwerk aus testen.</li>
+<li><strong><code>DnsRecordCreateConflict</code> / <code>Error: creating/updating Public IP ...</code>:</strong> <code>dns_label_prefix</code> ist nicht global eindeutig — der auto-generierte Default (<code>random_string.dns_suffix</code>, siehe <code>main.tf</code>) tritt dann auf, wenn der Wert in <code>terraform.tfvars</code> versehentlich manuell überschrieben wurde; auskommentierte Zeile in <code>terraform.tfvars.example</code> dann wieder entfernen bzw. anpassen.</li>
+</ul>
+<h2>Ausblick</h2>
+<p>Direkt im Anschluss an dieses einmalige Terraform-Intermezzo kehrt der Kurs zu Bicep zurück und baut das Fundament aus Lab 4 an Tag 2 in zwei Richtungen weiter aus, ohne dass bei null angefangen wird: Als nächstes stehen die <strong>Azure Quickstart Templates</strong> (offizielle, von Microsoft gepflegte Bicep/ARM-Referenzvorlagen für gängige Architekturmuster) auf dem Programm, gefolgt von <strong>VM Scale Sets</strong> (ersetzen die Einzel-VM aus <code>modules/vm.bicep</code> für Hochverfügbarkeit) und — als "erster Bruch des Monolithen" — <strong>Azure Database for MySQL Flexible Server</strong> (die Datenbank wandert aus <code>cloud-init.yaml</code> in einen eigenen verwalteten Dienst, Web-/App-Schicht und Datenschicht werden damit erstmals unabhängig voneinander skalierbar). Terraform selbst wird im weiteren Kursverlauf <strong>nicht</strong> erneut aufgegriffen — dieses Lab bleibt bewusst die einzige Berührung damit.</p>
+  </article>
+
+  <div class="lab-nav">
+    <a href="../index.html">&larr; Zur Lab-Übersicht</a>
+    <a href="https://github.com/tdrilling/azure-deployment-workshop-labs/blob/main/Instructions/05-terraform.md">Quelltext (Markdown) auf GitHub ansehen &rarr;</a>
+  </div>
+
+  <p class="credit">Thomas Drilling &middot; Microsoft Certified Trainer &middot; drilling-azure.de / cloudtrain.de</p>
+</div>
+</body>
+</html>
