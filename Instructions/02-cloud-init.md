@@ -8,11 +8,11 @@
 
 ## Was Cloud-Init ist (kurz)
 
-Cloud-Init ist der De-facto-Standard für die Erstkonfiguration von Linux-VMs in der Cloud — nicht Azure-spezifisch, sondern auch bei AWS/GCP im Einsatz. Azure übergibt die Cloud-Init-Datei als "custom data" an die VM; der Cloud-Init-Dienst im Gastsystem liest sie beim allerersten Boot und arbeitet die darin definierten Abschnitte ab (`packages`, `write_files`, `runcmd`, in dieser Reihenfolge). Das Gastsystem braucht dafür lediglich Cloud-Init vorinstalliert — bei den offiziellen Ubuntu-Marketplace-Images (wie in diesem Lab) ist das bereits der Fall.
+Cloud-Init ist der De-facto-Standard für die Erstkonfiguration von Linux-VMs in der Cloud — nicht Azure-spezifisch, sondern auch bei AWS/GCP im Einsatz. Azure übergibt die Cloud-Init-Datei als "custom data" an die VM; der Cloud-Init-Dienst im Gastsystem liest sie beim allerersten Boot und arbeitet die darin definierten Abschnitte ab (`write_files`, `packages`, `runcmd`, in dieser Reihenfolge). Das Gastsystem braucht dafür lediglich Cloud-Init vorinstalliert — bei den offiziellen Ubuntu-Marketplace-Images (wie in diesem Lab) ist das bereits der Fall.
 
 ## Schritt 1: Vor dem Deployment — Kennwort ersetzen
 
-In `Allfiles/02-cloud-init/cloud-init.yaml` **alle drei Vorkommen** von `<CHANGE_ME>` durch ein eigenes Kennwort ersetzen (Datenbank-Credentials-Block). Ohne diesen Schritt schlägt das Datenbank-Setup mit einem für den Kurs ungeeigneten Standardwert fehl bzw. bleibt unsicher.
+In `Allfiles/02-cloud-init/cloud-init.yaml` das Vorkommen von `__CHANGE_ME__` (Datenbank-Credentials-Block, Zeile `WP_DB_PASSWORD="__CHANGE_ME__"`) durch ein eigenes Kennwort ersetzen — dabei die umschließenden Anführungszeichen stehen lassen, nur den Platzhalter zwischen den Zeichen `__` austauschen. Bitte für das Kennwort selbst nur Buchstaben und Ziffern verwenden (keine `<`, `>`, `'`, `"` oder `$`): diese Datei wird auf der VM direkt per `source` in ein Bash-Skript eingelesen, und diese Zeichen haben dort eine shell-eigene Sonderbedeutung, die das Deployment stillschweigend zum Absturz bringen kann. Ohne diesen Schritt bleibt der Platzhalter-Wert stehen — funktional, aber unsicher.
 
 ## Schritt 2: VM mit Cloud-Init deployen
 
@@ -72,7 +72,7 @@ ssh -i ~/.ssh/workshop_lab azureuser@<PUBLIC-IP> "cloud-init status --wait"
 ## Troubleshooting
 
 - **`cloud-init status` meldet `status: error`:** Logs prüfen mit `sudo cat /var/log/cloud-init-output.log` — zeigt die Ausgabe jedes `runcmd`-Schritts inklusive Fehlermeldungen in Reihenfolge.
-- **WordPress-Setup erscheint nicht, Apache-Standardseite stattdessen:** `install-wordpress.sh` ist vermutlich vor Abschluss der Paketinstallation gelaufen oder fehlgeschlagen — prüfen mit `ls /opt/lamp-lab/.install-complete` (existiert die Datei nicht, ist das Skript nicht bis zum Ende durchgelaufen).
+- **WordPress-Setup erscheint nicht, Apache-Standardseite stattdessen:** `install-wordpress.sh` ist vermutlich vor Abschluss der Paketinstallation gelaufen oder fehlgeschlagen — prüfen mit `ls /opt/lamp-lab/.install-complete` (existiert die Datei nicht, ist das Skript nicht bis zum Ende durchgelaufen). Häufigste Ursache: das Kennwort aus Schritt 1 enthält ein Zeichen wie `<`, `>`, `'` oder `"`, wodurch das `source`-Kommando am Skriptanfang mit einem Syntaxfehler abbricht, bevor irgendetwas installiert wird — Log-Ausgabe prüft man in diesem Fall gezielt auf `install-wordpress.sh: line 7` bzw. eine Meldung nahe der `source`-Zeile.
 - **YAML-Syntaxfehler nach dem Bearbeiten:** vor dem Deployment lokal validieren, z. B. mit `python3 -c "import yaml; yaml.safe_load(open('cloud-init.yaml'))"` — Cloud-Init selbst meldet Syntaxfehler erst nach dem VM-Boot in `/var/log/cloud-init.log`.
 - **Skript manuell erneut ausführen** (z. B. nach Korrektur eines Tippfehlers direkt auf der VM): `sudo /opt/lamp-lab/install-wordpress.sh`.
 

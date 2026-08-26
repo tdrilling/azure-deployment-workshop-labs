@@ -2,10 +2,12 @@
 # Azure Deployment Workshop - Lab 2: LAMP + WordPress vollautomatisiert per Cloud-Init
 #
 # ACHTUNG (Lab-Kontext, siehe README.md "Sicherheitshinweis"): Das Kennwort unten
-# ist ein Klartext-Platzhalter. Vor dem Deployment ALLE Vorkommen von <CHANGE_ME>
-# durch ein eigenes, starkes Kennwort ersetzen. In produktiven Deployments gehört
-# ein Secret wie dieses in Azure Key Vault, nicht in eine Cloud-Init-Datei -- das
-# wird an Tag 3 (App Services, Managed Identity) explizit gezeigt.
+# ist ein Klartext-Platzhalter. Vor dem Deployment das Vorkommen von __CHANGE_ME__
+# durch ein eigenes, starkes Kennwort ersetzen (nur Buchstaben/Ziffern -- siehe
+# Hinweis direkt am Platzhalter unten, warum keine Sonderzeichen wie <, >, ', "
+# verwendet werden sollten). In produktiven Deployments gehoert ein Secret wie
+# dieses in Azure Key Vault, nicht in eine Cloud-Init-Datei -- das wird an Tag 3
+# (App Services, Managed Identity) explizit gezeigt.
 #
 # Getestet gegen: Ubuntu Server 24.04 LTS (Image "Ubuntu2404")
 # Bildet Lab 1 (manuelle Installation) 1:1 automatisiert nach -- siehe
@@ -34,7 +36,7 @@ write_files:
     content: |
       WP_DB_NAME=wordpress
       WP_DB_USER=wpuser
-      WP_DB_PASSWORD=<CHANGE_ME>
+      WP_DB_PASSWORD="__CHANGE_ME__"
 
   - path: /opt/lamp-lab/install-wordpress.sh
     permissions: '0700'
@@ -71,11 +73,12 @@ write_files:
       sed -i "s/password_here/${WP_DB_PASSWORD}/" wp-config.php
 
       # Echte Security-Keys statt Platzhalter ziehen (WordPress-API, benoetigt
-      # ausgehenden Internetzugriff der VM). Schlaegt der Abruf fehl, bleiben
-      # die Platzhalter aus wp-config-sample.php stehen -- Skript bricht
-      # deswegen NICHT ab (kein "set -e"-Trigger hier gewuenscht).
+      # ausgehenden Internetzugriff der VM). Schlaegt der Abruf fehl oder bleibt
+      # leer, bleiben die Platzhalter aus wp-config-sample.php stehen -- Skript
+      # bricht deswegen NICHT ab (kein "set -e"-Trigger hier gewuenscht).
       SALTS=$(curl -s https://api.wordpress.org/secret-key/1.1/salt/ || true)
       if [ -n "$SALTS" ]; then
+        echo "$SALTS" > /tmp/salts.txt
         php -r '
           $salts = file_get_contents("/tmp/salts.txt");
           $config = file_get_contents("/var/www/html/wp-config.php");
@@ -86,7 +89,8 @@ write_files:
             1
           );
           file_put_contents("/var/www/html/wp-config.php", $config);
-        ' 2>/dev/null || echo "$SALTS" > /tmp/salts.txt
+        ' 2>/dev/null || true
+        rm -f /tmp/salts.txt
       fi
 
       # -- Berechtigungen (entspricht Lab 1, Schritt 10) --
