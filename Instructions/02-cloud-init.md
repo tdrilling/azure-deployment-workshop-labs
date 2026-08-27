@@ -29,10 +29,12 @@ az vm create \
   --admin-username azureuser \
   --ssh-key-values ~/.ssh/workshop_lab.pub \
   --public-ip-sku Standard \
-  --custom-data Allfiles/02-cloud-init/cloud-init.yaml
+  --custom-data "$(pwd)/Allfiles/02-cloud-init/cloud-init.yaml"
 
 az vm open-port --resource-group rg-lamp-lab-ci --name vm-lamp-ci --port 80 --priority 900
 ```
+
+**Wichtig — unbedingt den absoluten Pfad verwenden (`"$(pwd)/..."`), nicht nur `Allfiles/02-cloud-init/cloud-init.yaml`:** `az vm create` prüft bei `--custom-data` nicht, ob am angegebenen Pfad überhaupt eine Datei existiert. Bei einem relativen Pfad hängt die Funktion also unsichtbar davon ab, aus welchem Verzeichnis heraus der Befehl läuft — wird `az vm create` auch nur einen Ordner daneben ausgeführt, verwendet die Azure-CLI stillschweigend den **Pfad-String selbst** als Custom-Data-Inhalt statt eines Fehlers (bekanntes, nie behobenes CLI-Verhalten, siehe [Azure/azure-cli#5929](https://github.com/Azure/azure-cli/issues/5929)) — Cloud-Init läuft dann nie und es wird stillschweigend nichts installiert. `"$(pwd)/Allfiles/02-cloud-init/cloud-init.yaml"` löst das Verzeichnis zum Aufrufzeitpunkt in einen absoluten Pfad auf und macht den Befehl dadurch unabhängig vom aktuellen Arbeitsverzeichnis.
 
 `--custom-data` übergibt die Datei 1:1 an Cloud-Init im Gastsystem. Wichtig: `az vm create` validiert den Inhalt **nicht** — ein YAML-Syntaxfehler fällt erst beim Booten der VM auf (siehe Troubleshooting unten), nicht beim `az vm create`-Aufruf selbst.
 
@@ -71,7 +73,11 @@ ssh -i ~/.ssh/workshop_lab azureuser@<PUBLIC-IP> "cloud-init status --wait"
 
 ## Troubleshooting
 
-- **`apache2.service`/`mysql.service` existieren laut `systemctl status` gar nicht als Unit (es wurde offenbar überhaupt nichts installiert):** Das deutet fast immer darauf hin, dass Cloud-Init die Datei nie zu Gesicht bekommen hat. `az vm create --custom-data <Pfad>` prüft **nicht**, ob am angegebenen Pfad tatsächlich eine Datei existiert. Wird der Befehl aus einem anderen Arbeitsverzeichnis heraus ausgeführt als dem, in dem `Allfiles/02-cloud-init/cloud-init.yaml` relativ liegt, verwendet die Azure-CLI stillschweigend den **Pfad-String selbst** als Custom-Data-Inhalt statt eines Fehlers (bekanntes, nie behobenes CLI-Verhalten, siehe [Azure/azure-cli#5929](https://github.com/Azure/azure-cli/issues/5929)). Prüfen mit `sudo cat /var/log/cloud-init-output.log`: Steht dort eine Zeile wie `Unhandled non-multipart ... userdata: 'b'Allfiles/...'`, ist genau das passiert. **Fix:** `az vm create` exakt aus dem Repo-Root heraus ausführen, oder gleich einen absoluten Pfad übergeben: `--custom-data "$(pwd)/Allfiles/02-cloud-init/cloud-init.yaml"`.
+- **`apache2.service`/`mysql.service` existieren laut `systemctl status` gar nicht als Unit (es wurde offenbar überhaupt nichts installiert):** Das deutet fast immer darauf hin, dass Cloud-Init die Datei nie zu Gesicht bekommen hat — typischerweise, weil doch mit einem relativen statt dem oben empfohlenen absoluten `--custom-data`-Pfad gearbeitet wurde. `az vm create --custom-data <Pfad>` prüft **nicht**, ob am angegebenen Pfad tatsächlich eine Datei existiert; bei einem relativen Pfad verwendet die Azure-CLI dann stillschweigend den **Pfad-String selbst** als Custom-Data-Inhalt statt eines Fehlers zu melden (bekanntes, nie behobenes CLI-Verhalten, siehe [Azure/azure-cli#5929](https://github.com/Azure/azure-cli/issues/5929)) — und zwar unabhängig davon, ob der relative Pfad "eigentlich stimmt": entscheidend ist einzig, ob er relativ zum tatsächlichen Arbeitsverzeichnis beim `az vm create`-Aufruf auflöst. Zwei Wege, das definitiv zu bestätigen:
+  - `sudo cat /var/lib/cloud/instance/user-data.txt` — steht dort statt `#cloud-config`-YAML nur ein kurzer Pfad-String wie `Allfiles/02-cloud-init/cloud-init.yaml`, ist das der eindeutige Beweis.
+  - `sudo cat /var/log/cloud-init-output.log` bzw. `/var/log/cloud-init.log`: Eine Zeile wie `Unhandled non-multipart ... userdata: 'b'Allfiles/...'` zeigt dasselbe.
+  
+  **Fix:** VM mit dem oben stehenden Befehl (absoluter Pfad via `"$(pwd)/..."`) neu deployen — das macht den Aufruf unabhängig vom Arbeitsverzeichnis und verhindert dieses Problem strukturell, statt sich darauf zu verlassen, exakt das richtige Verzeichnis zu treffen.
 - **`cloud-init status` meldet `status: error`:** Logs prüfen mit `sudo cat /var/log/cloud-init-output.log` — zeigt die Ausgabe jedes `runcmd`-Schritts inklusive Fehlermeldungen in Reihenfolge.
 - **WordPress-Setup erscheint nicht, Apache-Standardseite stattdessen:** `install-wordpress.sh` ist vermutlich vor Abschluss der Paketinstallation gelaufen oder fehlgeschlagen — prüfen mit `ls /opt/lamp-lab/.install-complete` (existiert die Datei nicht, ist das Skript nicht bis zum Ende durchgelaufen). Häufigste Ursache: das Kennwort aus Schritt 1 enthält ein Zeichen wie `<`, `>`, `'` oder `"`, wodurch das `source`-Kommando am Skriptanfang mit einem Syntaxfehler abbricht, bevor irgendetwas installiert wird — Log-Ausgabe prüft man in diesem Fall gezielt auf `install-wordpress.sh: line 7` bzw. eine Meldung nahe der `source`-Zeile.
 - **YAML-Syntaxfehler nach dem Bearbeiten:** vor dem Deployment lokal validieren, z. B. mit `python3 -c "import yaml; yaml.safe_load(open('cloud-init.yaml'))"` — Cloud-Init selbst meldet Syntaxfehler erst nach dem VM-Boot in `/var/log/cloud-init.log`.
