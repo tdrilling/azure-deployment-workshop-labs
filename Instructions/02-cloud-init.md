@@ -74,7 +74,9 @@ Cloud-Init läuft asynchron nach dem Boot — die VM ist in Azure bereits "Runni
 ssh -i ~/.ssh/workshop_lab azureuser@<PUBLIC-IP> "cloud-init status --wait"
 ```
 
-`--wait` blockiert, bis Cloud-Init abgeschlossen ist (Rückgabewert `status: done`). Danach `http://<PUBLIC-IP>/` im Browser aufrufen — das WordPress-Setup sollte direkt erscheinen, exakt wie am Ende von Lab 1, nur ohne die manuellen Zwischenschritte.
+`--wait` blockiert, bis Cloud-Init abgeschlossen ist (Rückgabewert `status: done`). Danach **`http://<PUBLIC-IP>/` mit explizitem `http://` davor** im Browser aufrufen — das WordPress-Setup sollte direkt erscheinen, exakt wie am Ende von Lab 1, nur ohne die manuellen Zwischenschritte.
+
+**Wichtig:** Wird nur die nackte IP-Adresse ohne `http://` eingegeben, wechseln viele aktuelle Browser (u. a. Chrome mit aktiviertem "Always use secure connections") automatisch zu HTTPS — auf dieser VM läuft aber ausschließlich Port 80, kein TLS auf 443. Das sieht dann exakt wie ein fehlgeschlagenes Deployment aus ("kein Webserver erreichbar"), obwohl Apache und WordPress einwandfrei laufen. Im Zweifel zuerst mit `curl -I http://<PUBLIC-IP>/` von der eigenen Maschine aus testen (nicht per SSH von der VM aus) — das umgeht jede Browser-eigene HTTPS-Umschaltung und zeigt den echten Status.
 
 ## Troubleshooting
 
@@ -83,6 +85,7 @@ ssh -i ~/.ssh/workshop_lab azureuser@<PUBLIC-IP> "cloud-init status --wait"
   - `sudo cat /var/log/cloud-init-output.log` bzw. `/var/log/cloud-init.log`: Eine Zeile wie `Unhandled non-multipart ... userdata: 'b'Allfiles/...'` zeigt dasselbe.
   
   **Fix:** VM mit dem oben stehenden Befehl (inkl. `cd` ins Repo-Root und `test -f`-Prüfung) neu deployen — das verhindert dieses Problem strukturell (sofortiger Abbruch mit klarer Meldung), statt sich darauf zu verlassen, zufällig im richtigen Verzeichnis zu sein.
+- **`cloud-init status` meldet `status: done`, aber der Browser zeigt trotzdem keinen Webserver:** Fast immer kein echtes Deployment-Problem, sondern die eigene Browser-HTTPS-Umschaltung — siehe Hinweis in Schritt 3 oben. Zuerst mit `curl -I http://<PUBLIC-IP>/` von der eigenen Maschine (nicht per SSH) testen; kommt dort eine normale HTTP-Antwort (z. B. `302 Found`), ist das Deployment in Ordnung und es fehlte nur das explizite `http://` im Browser.
 - **`cloud-init status` meldet `status: error`:** Logs prüfen mit `sudo cat /var/log/cloud-init-output.log` — zeigt die Ausgabe jedes `runcmd`-Schritts inklusive Fehlermeldungen in Reihenfolge.
 - **WordPress-Setup erscheint nicht, Apache-Standardseite stattdessen:** `install-wordpress.sh` ist vermutlich vor Abschluss der Paketinstallation gelaufen oder fehlgeschlagen — prüfen mit `ls /opt/lamp-lab/.install-complete` (existiert die Datei nicht, ist das Skript nicht bis zum Ende durchgelaufen). Häufigste Ursache: das Kennwort aus Schritt 1 enthält ein Zeichen wie `<`, `>`, `'` oder `"`, wodurch das `source`-Kommando am Skriptanfang mit einem Syntaxfehler abbricht, bevor irgendetwas installiert wird — Log-Ausgabe prüft man in diesem Fall gezielt auf `install-wordpress.sh: line 7` bzw. eine Meldung nahe der `source`-Zeile.
 - **YAML-Syntaxfehler nach dem Bearbeiten:** vor dem Deployment lokal validieren, z. B. mit `python3 -c "import yaml; yaml.safe_load(open('cloud-init.yaml'))"` — Cloud-Init selbst meldet Syntaxfehler erst nach dem VM-Boot in `/var/log/cloud-init.log`.
