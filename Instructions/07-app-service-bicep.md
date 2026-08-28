@@ -15,6 +15,10 @@ Stattdessen orchestriert `main.bicep`:
 - `modules/appservice.bicep` — App Service Plan (Linux, Standard-Tier `S1`), Web App mit PHP-Runtime, plus eine `"staging"`-Deployment-Slot für Lab 8.
 - `modules/mysql.bicep` — Azure Database for MySQL Flexible Server, Datenbank, Firewall-Regel. Deklariert deklarativ, was in Lab 6 per CLI (`az mysql flexible-server create` + `db create` + `firewall-rule create`) imperativ entstand.
 
+!!! reflect "Reflexionsstop"
+    Bei Lab 4 gab es ein `modules/network.bicep`, hier nicht. Ist die Web App aus diesem Lab dadurch standardmäßig offener oder enger abgesichert als die VM aus Lab 4 — und was genau übernimmt hier die Rolle der NSG von damals?
+
+
 **Wichtiger Tier-Unterschied zu Lab 6:** Lab 6 verwendete für den App Service Plan bewusst die günstige Basic-Stufe (`B1`), da dort keine Deployment-Slots gebraucht wurden. Deployment Slots werden laut Microsoft-Dokumentation (`learn.microsoft.com/azure/app-service/deploy-staging-slots`) **erst ab der Standard-Stufe** unterstützt — Basic reicht dafür nicht aus. Dieses Lab verwendet deshalb `S1` (Standard, bis zu 5 Slots) als bewusste Mindeststufe, da Lab 8 den `"staging"`-Slot für seine CI/CD-Pipeline braucht.
 
 ## Repository-Struktur dieses Labs
@@ -100,6 +104,9 @@ Anders als bei Lab 1/2/4 (VM + Cloud-Init) gibt es hier **kein** Cloud-Init-Wart
 ## Was bringt Bicep gegenüber der manuellen CLI (Lab 6) Neu?
 
 Dieselben Vorteile wie bereits bei Lab 4 gegenüber Lab 1 besprochen (Deklarativ statt imperativ, Wiederholbarkeit/Idempotenz, `what-if` als Trockenlauf, kein State-File, Modularität) — hier zusätzlich konkret sichtbar: die MySQL-Firewall-Regel, die in Lab 6 leicht vergessen werden kann (App Service kann die Datenbank sonst nicht erreichen, siehe Troubleshooting dort), ist hier fester, nicht vergessbarer Teil von `modules/mysql.bicep`.
+
+!!! reflect "Reflexionsstop"
+    Dieses Lab trennt Infrastruktur- und Code-Deployment bewusst in zwei Schritte (siehe Schritt 6), statt beides in einem Rutsch zu erledigen. Welcher spätere Kursbaustein baut genau auf dieser Trennung auf?
 
 ## Troubleshooting
 

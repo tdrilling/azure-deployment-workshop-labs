@@ -14,6 +14,9 @@ Cloud-Init ist der De-facto-Standard für die Erstkonfiguration von Linux-VMs in
 
 In `Allfiles/02-cloud-init/cloud-init.yaml` das Vorkommen von `__CHANGE_ME__` (Datenbank-Credentials-Block, Zeile `WP_DB_PASSWORD="__CHANGE_ME__"`) durch ein eigenes Kennwort ersetzen — dabei die umschließenden Anführungszeichen stehen lassen, nur den Platzhalter zwischen den Zeichen `__` austauschen. Bitte für das Kennwort selbst nur Buchstaben und Ziffern verwenden (keine `<`, `>`, `'`, `"` oder `$`): diese Datei wird auf der VM direkt per `source` in ein Bash-Skript eingelesen, und diese Zeichen haben dort eine shell-eigene Sonderbedeutung, die das Deployment stillschweigend zum Absturz bringen kann. Ohne diesen Schritt bleibt der Platzhalter-Wert stehen — funktional, aber unsicher.
 
+!!! reflect "Reflexionsstop"
+    An welcher Stelle im Ablauf (VM-Erstellung, Cloud-Init-Start, Skriptausführung) würde ein verbotenes Zeichen im Kennwort tatsächlich zum Absturz führen — und würden Sie den Fehler eher in den Azure-Logs oder auf der VM selbst suchen?
+
 ## Schritt 2: VM mit Cloud-Init deployen
 
 ### Azure CLI
@@ -102,6 +105,9 @@ Jeder Abschnitt dieser Cloud-Init-Datei entspricht direkt einem Schritt aus Lab 
 | Schritt 8: WordPress herunterladen | `install-wordpress.sh`, Abschnitt "WordPress-Core" |
 | Schritt 9: `wp-config.php` | `install-wordpress.sh`, Abschnitt "wp-config.php" |
 | Schritt 10: Berechtigungen | `install-wordpress.sh`, Abschnitt "Berechtigungen" |
+
+!!! reflect "Reflexionsstop"
+    Zwei Schritte aus Lab 1 tauchen in dieser Tabelle nicht auf: Schritt 0 (SSH-Schlüsselpaar) und Schritt 3 (`apt update`). Warum nicht — was übernimmt in diesem Lab jeweils an ihrer Stelle welche Rolle?
 
 ## Ausblick
 

@@ -16,6 +16,9 @@
 
 **Aktueller Stand (wichtig für den Vortrag):** Die klassische VM-DSC-Erweiterung (`Microsoft.Powershell.DSC`) befindet sich im Wartungsmodus — Microsoft verweist für neue produktive DSC-Szenarien zunehmend auf **Azure Automanage Machine Configuration** (vormals "Guest Configuration"). Für dieses Lab bleibt die klassische Erweiterung der pragmatischste Weg, da sie ohne zusätzliche Automanage-Einrichtung auskommt — im Vortrag aber explizit als "das klassische, noch weit verbreitete Werkzeug, nicht mehr die Microsoft-Zukunftsrichtung" einordnen.
 
+!!! reflect "Reflexionsstop"
+    Für welche der drei Kategorien aus der Tabelle oben (VM-Erweiterung, VM-Anwendung, DSC) würden Sie sich entscheiden, wenn WordPress selbst — nicht nur IIS/PHP/MySQL — regelmäßig in neuer Version auf viele VMs verteilt werden müsste? Warum passt DSC dafür schlechter als die Alternative?
+
 ## Schritt 1: Windows-VM anlegen
 
 ```bash
@@ -85,6 +88,9 @@ az vm extension show \
 ```
 
 Bei `"code": "ProvisioningState/succeeded"` ist die Konfiguration angewendet. Danach `http://<PUBLIC-IP>/` aufrufen — das WordPress-Setup sollte erscheinen, wie in Lab 1/2, nur über IIS statt Apache ausgeliefert.
+
+!!! reflect "Reflexionsstop"
+    Weiter unten steht, dass DSC seine Stärke bei laufender Konfigurationsdrift-Kontrolle hat. Bevor Sie dort weiterlesen: Was passiert, wenn jemand nach diesem Lab manuell ein IIS-Feature auf der VM deaktiviert — bei DSC, und zum Vergleich bei der Cloud-Init-VM aus Lab 2?
 
 ## Troubleshooting
 

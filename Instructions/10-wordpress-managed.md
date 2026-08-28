@@ -57,6 +57,9 @@ Standardmäßig sind mehrere Zusatzdienste aktiviert. Vor dem Weiterklicken jede
 
 Wer die Add-ins nicht kennt oder für dieses Lab schlank bleiben will, kann die Häkchen entfernen — das Deployment funktioniert auch ohne sie, WordPress läuft dann nur ohne CDN/Front-Door-Vorschaltung und ohne Blob-Storage-Anbindung für Medien.
 
+!!! reflect "Reflexionsstop"
+    Welches der vier Add-ins würden Sie für eine öffentliche, stark frequentierte WordPress-Seite als Erstes aktivieren, welches am ehesten weglassen — und was hat das jeweils mit einer Grenze zu tun, die Lab 6/7 an genau diesem Punkt hatten?
+
 ## Schritt 5: Review + Create
 
 - Tab **„Review + create"** öffnen, Validierung abwarten.
@@ -98,6 +101,9 @@ Der zurückgegebene Wert zeigt ein vorkonfiguriertes WordPress-spezifisches Cont
 | Caching/Auslieferung | keins | keins | optional Azure Front Door + CDN |
 | Was Sie manuell einrichten mussten | jede Ressource einzeln, `wp-config.php`-Anpassung | Bicep-Module, aber dieselben Ressourcen | nichts — ein Formular |
 | Was weiterhin bei Ihnen bleibt | alles | alles | Plugin-/Theme-Pflege, Content, Skalierungs-/Kostenentscheidungen, eigene Backup-Strategie über die Plattform-Grundfunktion hinaus |
+
+!!! reflect "Reflexionsstop"
+    Ist die letzte Tabellenzeile wirklich weniger Verantwortung als bei Lab 6/7 — oder nur eine andere? Nennen Sie mindestens einen Punkt, den Sie bei diesem verwalteten Weg tatsächlich verlieren, den Sie bei Lab 6/7 noch hatten.
 
 ## Troubleshooting
 

@@ -12,6 +12,9 @@
 
 In Bicep gibt es diese Automatik **nicht**. Jede Netzwerkressource muss explizit deklariert werden — genau das ist der didaktische Kernpunkt dieses Labs: Sie sehen jetzt schwarz auf weiß, was `az vm create` bisher für Sie unsichtbar erledigt hat. `modules/network.bicep` deklariert daher fünf Ressourcen, die in Lab 1 CLI-seitig gar nicht sichtbar waren: `Microsoft.Network/virtualNetworks`, die Subnetz-Definition darin, `Microsoft.Network/networkSecurityGroups` (mit den zwei Regeln, die in Lab 1 aus `--ssh-key-values` + `az vm open-port` resultierten), `Microsoft.Network/publicIPAddresses` und `Microsoft.Network/networkInterfaces`.
 
+!!! reflect "Reflexionsstop"
+    Sie deployen `main.bicep` gegen dieselbe Ressourcengruppe, in der bereits eine per `az vm create` (Lab 1) selbst angelegte NSG mit demselben Namen existiert. Was denken Sie, passiert — ein Fehler, eine stillschweigende Übernahme der Ressource, oder eine dritte Möglichkeit?
+
 Zweiter Unterschied: Cloud-Init aus Lab 2 wird **nicht dupliziert**, sondern per `loadTextContent()` direkt eingebunden (siehe Abschnitt "Wiederverwendung von Lab 2" unten) — Bicep übernimmt die Infrastruktur-Deklaration, Cloud-Init bleibt für die Software-Konfiguration zuständig. Zwei Werkzeuge, eine klare Verantwortungsgrenze, kein Copy-Paste-Skript.
 
 ## Repository-Struktur dieses Labs
@@ -142,6 +145,9 @@ az bicep build --file Allfiles/04-bicep/main.bicep
 ```
 
 Kompiliert `main.bicep` (inkl. aller Module) zu einem einzelnen, vollständig aufgelösten `main.json` im selben Verzeichnis — Bicep ist letztlich nur eine komfortablere Syntax **über** ARM-JSON, kein eigenständiges Deployment-Format. Genau dieses Prinzip liegt der für später geplanten Referenz-Vorlage `Allfiles/reference/arm/main.json` zugrunde (separater Repo-Baustein, noch nicht Teil dieses Labs) — sie zeigt, wie das kompilierte Ergebnis dieses Bicep-Templates aussieht, ohne dass ARM-JSON im Kurs selbst als Autorenformat unterrichtet wird.
+
+!!! reflect "Reflexionsstop"
+    Sie kennen jetzt vier Vorteile von Bicep gegenüber der CLI aus Lab 1. Ein Kollege fragt: 'Warum nicht einfach ein Bash-Skript mit allen `az`-Befehlen aus Lab 1 hintereinander — ist das nicht genauso wiederholbar?' Welchen der vier Vorteile nennen Sie zuerst, und wo genau stößt das Bash-Skript an eine Grenze, die genau dieser Vorteil auflöst?
 
 ---
 

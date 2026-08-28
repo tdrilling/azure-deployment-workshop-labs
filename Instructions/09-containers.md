@@ -124,6 +124,9 @@ Liefert `wordpressUrl` (z. B. `http://wordpress-workshop-xxxxx.westeurope.azurec
 | Skalierung | eingebaut (App-Service-Plan-Instanzen) | keine — ACI ist bewusst für Einzelinstanzen/Batch-Workloads gedacht, siehe Ausblick auf AKS/Container Apps |
 | Lokale Testbarkeit | eingeschränkt (keine 1:1-lokale Kopie der Plattform) | vollständig — `docker compose up` bildet den Zielzustand direkt ab |
 
+!!! reflect "Reflexionsstop"
+    ACI hat laut Tabelle kein eingebautes HTTPS und keine Deployment Slots. Wenn Sie für dieses Container-Image dieselbe Blue-Green-Sicherheit wie Lab 8s Slot-Swap bräuchten, welchen zusätzlichen Azure-Dienst müssten Sie mindestens ergänzen?
+
 ## Was würde produktiv anders laufen?
 
 - **ACR-Zugangsdaten:** dieses Lab verwendet aus Vereinfachungsgründen ACR-Admin-Zugangsdaten (`--admin-enabled true`, Schritt 2). Produktiv wäre eine System- oder User-Assigned Managed Identity mit der Rolle `AcrPull` auf der Registry der empfohlene Weg — kein Kennwort, das rotiert/verwaltet werden müsste.
@@ -137,6 +140,9 @@ Liefert `wordpressUrl` (z. B. `http://wordpress-workshop-xxxxx.westeurope.azurec
 - **`az acr build` schlägt mit einem Authentifizierungsfehler fehl:** `az login` erneut ausführen bzw. prüfen, ob die angemeldete Identität Schreibrechte auf die Registry hat (Rolle `AcrPush` oder Owner/Contributor auf die Resource Group).
 - **ACI-Deployment schlägt mit `RegistryErrorResponse`/Image-Pull-Fehler fehl:** `acrLoginServer`/`acrUsername`/`acrPassword` in `main.bicepparam` gegen die tatsächlichen Werte aus Schritt 4 prüfen — häufigster Fehler bei diesem Lab, meist ein veraltetes Kennwort nach einem `az acr credential renew`.
 - **`dnsNameLabel already in use`:** DNS-Name-Labels für `*.azurecontainer.io` sind regionsweit eindeutig; der Default nutzt bereits `uniqueString(resourceGroup().id)`, ein manuell überschriebener Name kann kollidieren.
+
+!!! reflect "Reflexionsstop"
+    Der Foliensatz von Tag 4 vergleicht ACI, AKS und Container Apps auch nach Kosten. Für welchen typischen Einsatzzweck aus dieser Vergleichstabelle wäre genau dieses Lab — eine einzelne, dauerhaft laufende WordPress-Instanz — der wirtschaftlich schlechteste Kandidat, obwohl es didaktisch der einfachste Einstieg ist?
 
 ## Ausblick
 

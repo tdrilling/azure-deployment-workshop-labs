@@ -139,6 +139,10 @@ define( 'DB_HOST', getenv( 'WORDPRESS_DB_HOST' ) );
 
 Diese vier Zeilen ersetzen die vier `define()`-Aufrufe aus der Sample-Datei 1:1. Die Namen (`WORDPRESS_DB_NAME` usw.) sind frei wählbar — sie müssen nur exakt zu den App-Setting-Namen aus Schritt 6 passen.
 
+!!! reflect "Reflexionsstop"
+    Was, glauben Sie, passiert nach dem Deployment (Schritt 7), wenn diese Anpassung an `wp-config.php` vergessen wird — landet die App auf einem erkennbaren Fehlerbildschirm, oder scheitert sie stiller und schwerer zu diagnostizieren?
+
+
 Anschließend **den Inhalt** des `wordpress`-Ordners (nicht den Ordner selbst) zippen:
 
 ```bash
@@ -214,6 +218,9 @@ oder direkt die URL öffnen: `https://app-wordpress-<IHR-SUFFIX>.azurewebsites.n
 | Skalierung | manuell (VM-Größe, Scale Sets in Tag 2) | über den App Service Plan, ohne VM-Verwaltung |
 
 Der Punkt in der letzten Zeile der Tabelle ist die Kehrseite: Was Sie in Schritt 2–8 an SSH/NSG/Cloud-Init-Aufwand **nicht** hatten, bezahlen Sie mit weniger Kontrolle — kein Zugriff auf das darunterliegende Betriebssystem, keine eigene Softwareinstallation außerhalb dessen, was die PHP-Laufzeit und App Settings hergeben.
+
+!!! reflect "Reflexionsstop"
+    Nennen Sie eine konkrete Situation, in der genau dieser Verlust an OS-Kontrolle für eine echte WordPress-Produktivumgebung zum spürbaren Problem werden könnte.
 
 ## Troubleshooting
 

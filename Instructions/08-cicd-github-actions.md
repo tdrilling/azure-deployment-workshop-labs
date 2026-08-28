@@ -55,6 +55,9 @@ Warum dieser Umweg über einen Slot, statt direkt in Production zu deployen?
 
 Dieses Muster wurde bereits konzeptionell in der Vorlesungseinheit zu Deployment Slots (Kurskonzept, Punkt 18) eingeführt — dieses Lab ist die dazugehörige, automatisierte Umsetzung.
 
+!!! reflect "Reflexionsstop"
+    Drei Gründe für den Umweg über den `staging`-Slot stehen oben. Welcher davon würde bereits vollständig entfallen, wenn dieses Team nur einen einzigen, sehr seltenen manuellen Deploy pro Monat hätte statt mehrerer Deploys pro Tag?
+
 ---
 
 ## Schritt 1: Authentifizierung einrichten (einmalig, Trainer-/Admin-Setup)
@@ -69,6 +72,10 @@ Es gibt zwei gängige Wege, wie eine GitHub-Actions-Pipeline sich gegenüber Azu
 - **OIDC mit föderiertem Credential** (`azure/login@v2` mit `client-id`/`tenant-id`/`subscription-id`) — GitHub stellt bei jedem Workflow-Lauf ein kurzlebiges, kryptografisch signiertes Token aus, das Azure AD gegen die vorab hinterlegte föderierte Vertrauensbeziehung prüft. **Kein Secret liegt dauerhaft im Repository** — es gibt schlicht keinen Long-Lived-Client-Secret-Wert, der geleakt werden könnte.
 
 Dieser Kurs unterrichtet **ausschließlich den OIDC-Weg** als aktuelle Best Practice. Der Publish-Profile-Weg existiert und ist in älterer Dokumentation/älteren Kursen noch verbreitet zu finden — er wird hier bewusst nicht vertieft.
+
+!!! reflect "Reflexionsstop"
+    Was genau könnte ein Angreifer mit einem geleakten Publish-Profile-Secret tun, das ihm ein abgefangenes OIDC-Token — kurzlebig und an genau einen Workflow-Lauf gebunden — nicht erlauben würde?
+
 
 ### Einrichtungsbefehle (einmalig, mit Owner/Admin-Rechten auf der Subscription)
 

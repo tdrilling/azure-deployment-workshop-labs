@@ -26,6 +26,9 @@ Das eröffnet eine ganze Fehlerklasse, die es bei Bicep/ARM schlicht nicht gibt:
 - **State-Locking:** Arbeiten zwei Personen gleichzeitig gegen dieselbe State-Datei, kann es zu widersprüchlichen Schreibvorgängen kommen — bei lokalem State (wie in diesem Lab) gibt es dafür **kein** eingebautes Locking, siehe Troubleshooting unten. Erst ein Remote-Backend (siehe unten) bringt Locking mit.
 - **State-Verlust:** Geht `terraform.tfstate` verloren (versehentlich gelöscht, nicht gesichert), "vergisst" Terraform, welche realen Azure-Ressourcen es verwaltet — ein erneutes `apply` würde versuchen, alles neu anzulegen, meist mit Namenskonflikten als Symptom.
 
+!!! reflect "Reflexionsstop"
+    Drei neue Fehlerklassen entstehen ausschließlich durch die Terraform-State-Datei. Welche davon würde ein lokal verwalteter State (wie in diesem Lab) am ehesten begünstigen, und welche eher ein von mehreren Personen geteiltes Remote-Backend?
+
 Deshalb landet `terraform.tfstate` in `Allfiles/05-terraform/.gitignore` (siehe Repository-Struktur unten) — sie darf **niemals** ins Repository. Für dieses einmalige Kurs-Lab bleibt der State bewusst **lokal** (Default-Backend). Für Team- oder Produktivbetrieb gehört der State stattdessen in ein **Remote-Backend mit Locking**, z. B. einen Azure-Storage-Account (`backend "azurerm" { ... }`, ein Kommentarblock dazu findet sich bereits vorbereitet in `main.tf`) — das wird in diesem Lab **nicht** aufgebaut, nur als Produktionshinweis erwähnt.
 
 Ein zweiter, kleinerer Unterschied: Bicep wird gegen eine vorab per `az group create` angelegte Resource Group deployt (`targetScope = 'resourceGroup'`, siehe Lab 4, Schritt 2). Terraform-Deployments sind grundsätzlich auf Subscription-Ebene angesiedelt — die Resource Group ist deshalb hier selbst eine von `main.tf` verwaltete Ressource (`azurerm_resource_group.main`) und landet mit im State. Ein separater "Resource-Group-anlegen"-Schritt vor dem Deployment entfällt dadurch gegenüber Lab 4.
@@ -185,6 +188,9 @@ Dieses Lab ist als **einmalige Gegenüberstellung** angelegt, nicht als Einstieg
 | Aufräumen | `az group delete` (State-los, daher unkompliziert) | `terraform destroy` (State-bewusst, gezielt) |
 
 Keines der beiden Werkzeuge ist in diesem Vergleich "besser" — beide erreichen dieselbe deklarative Zielsetzung (siehe Lab 4, Abschnitt "Was bringt Bicep gegenüber Cloud-Init/CLI Neu?"). Terraforms State-Modell ist der Preis für Multi-Cloud-Fähigkeit und einen von Azure unabhängigen Werkzeugstand; Biceps State-Losigkeit ist der Vorteil eines Werkzeugs, das ausschließlich für eine einzige Plattform gebaut ist. Für diesen Kurs, der sich explizit auf Azure konzentriert, bleibt Bicep/ARM deshalb das durchgängige Werkzeug — dieses Lab zeigt lediglich, dass die Alternative existiert und wie sie sich anfühlt.
+
+!!! reflect "Reflexionsstop"
+    Nennen Sie ein konkretes Szenario, in dem Sie sich trotz der Microsoft-Fokussierung dieses Kurses bewusst für Terraform statt Bicep entscheiden würden — und woran genau das in der Tabelle oben festzumachen ist.
 
 ---
 

@@ -1,9 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Rendert eine Lab-Markdown-Datei in die gleiche HTML-Vorlage wie die
-uebrigen Instructions/*.html (Kopf/CSS 1:1 aus 09-containers.html
-extrahiert, da kein Build-Skript im Repo ueberlebt hat -- siehe README/
-HANDOFF-Historie)."""
-import sys
+"""Rendert alle Lab-Markdown-Dateien in die gemeinsame HTML-Vorlage (Kopf/CSS
+1:1 aus 07-app-service-bicep.html extrahiert, da kein Build-Skript im Repo
+ueberlebt hat -- siehe README/HANDOFF-Historie). Ergaenzt die admonition-
+Extension fuer die "Reflexionsstop"-Kaesten (!!! reflect "...")."""
 import markdown
 
 HERE_HTML = "07-app-service-bicep.html"
@@ -27,7 +26,7 @@ def render(md_path, out_path, title, day_badge, lab_num, h1):
 
     html_body = markdown.markdown(
         body_md,
-        extensions=["extra", "codehilite", "tables", "sane_lists"],
+        extensions=["extra", "codehilite", "tables", "sane_lists", "admonition"],
         extension_configs={"codehilite": {"css_class": "codehilite", "guess_lang": False}},
     )
 
@@ -39,7 +38,7 @@ def render(md_path, out_path, title, day_badge, lab_num, h1):
     out = []
     out.append(head)
     out.append("\n\n<header class=\"hero\">\n  <div class=\"wrap\">\n")
-    out.append(f'    <p class="crumb"><a href="../index.html">&larr; Zur Lab-Übersicht</a></p>\n')
+    out.append('    <p class="crumb"><a href="../index.html">&larr; Zur Lab-Übersicht</a></p>\n')
     out.append(f'    <p class="eyebrow"><span class="day-badge">{day_badge}</span>{lab_num} &middot; Azure Deployment Workshop</p>\n')
     out.append(f"    <h1>{h1}</h1>\n")
     out.append("  </div>\n</header>\n\n<div class=\"wrap\">\n  <article>\n")
@@ -58,12 +57,40 @@ def render(md_path, out_path, title, day_badge, lab_num, h1):
     print("Gerendert:", out_path)
 
 
+LABS = [
+    ("01-manual-lamp.md", "01-manual-lamp.html",
+     "Manuelle LAMP-Installation auf einer Azure-VM", "Tag 1", "Lab 01",
+     "Manuelle LAMP-Installation auf einer Azure-VM"),
+    ("02-cloud-init.md", "02-cloud-init.html",
+     "LAMP + WordPress automatisiert per Cloud-Init", "Tag 1", "Lab 02",
+     "LAMP + WordPress automatisiert per Cloud-Init"),
+    ("03-windows-dsc.md", "03-windows-dsc.html",
+     "WordPress unter Windows: VM-Erweiterungen, VM-Anwendungen und DSC", "Tag 1", "Lab 03",
+     "WordPress unter Windows: VM-Erweiterungen, VM-Anwendungen und DSC"),
+    ("04-bicep.md", "04-bicep.html",
+     "WordPress deklarativ mit Bicep", "Tag 2", "Lab 04",
+     "WordPress deklarativ mit Bicep"),
+    ("05-terraform.md", "05-terraform.html",
+     "WordPress deklarativ mit Terraform (einmalige Demonstration)", "Tag 2", "Lab 05",
+     "WordPress deklarativ mit Terraform (einmalige Demonstration)"),
+    ("06-app-service-manual.md", "06-app-service-manual.html",
+     "Manuelles PHP-Deployment auf App Service", "Tag 3", "Lab 06",
+     "Manuelles PHP-Deployment auf App Service"),
+    ("07-app-service-bicep.md", "07-app-service-bicep.html",
+     "Deklaratives App-Service-Deployment (Bicep)", "Tag 3", "Lab 07",
+     "Deklaratives App-Service-Deployment (Bicep)"),
+    ("08-cicd-github-actions.md", "08-cicd-github-actions.html",
+     "CI/CD mit GitHub Actions: Build → Deploy in Slot → Swap", "Tag 3", "Lab 08",
+     "CI/CD mit GitHub Actions: Build → Deploy in Slot → Swap"),
+    ("09-containers.md", "09-containers.html",
+     "Container-Deployment (Azure Container Instances)", "Tag 4", "Lab 09",
+     "Container-Deployment (Azure Container Instances)"),
+    ("10-wordpress-managed.md", "10-wordpress-managed.html",
+     "WordPress on Azure App Service: der verwaltete Weg", "Tag 4", "Lab 10",
+     "WordPress on Azure App Service: der verwaltete Weg"),
+]
+
+
 if __name__ == "__main__":
-    render(
-        "10-wordpress-managed.md",
-        "10-wordpress-managed.html",
-        "WordPress on Azure App Service: der verwaltete Weg",
-        "Tag 4",
-        "Lab 10",
-        "WordPress on Azure App Service: der verwaltete Weg",
-    )
+    for md_path, out_path, title, day_badge, lab_num, h1 in LABS:
+        render(md_path, out_path, title, day_badge, lab_num, h1)

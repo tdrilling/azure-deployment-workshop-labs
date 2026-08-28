@@ -116,6 +116,9 @@ sudo mysql_secure_installation
 
 Bei `mysql_secure_installation` im Kurs live durchgehen: Root-Passwort setzen, anonyme Benutzer entfernen, Remote-Root-Login deaktivieren, Test-Datenbank entfernen — alles mit `Y` bestätigen.
 
+!!! reflect "Reflexionsstop"
+    Welche dieser vier Standardantworten würden Sie auf einer echten Produktions-VM anders setzen als hier im Lab — und bei welcher wäre `Y` tatsächlich immer richtig, unabhängig vom Einsatzzweck?
+
 ## Schritt 7: Datenbank und Benutzer für WordPress anlegen
 
 ```bash
@@ -173,6 +176,9 @@ sudo find /var/www/html -type f -exec chmod 644 {} \;
 `http://<PUBLIC-IP>` aufrufen → Sprache wählen → Site-Titel, Admin-Benutzer und -Passwort vergeben → **WordPress installieren**.
 
 ---
+
+!!! reflect "Reflexionsstop"
+    Sie haben WordPress jetzt komplett manuell installiert — elf Schritte, jeder einzeln nachvollziehbar. Bevor Sie zu Lab 2 wechseln: Welche drei dieser elf Schritte würden Sie zuerst automatisieren, wenn Sie nur einen einzigen Handgriff sparen dürften — und warum genau diese und nicht andere?
 
 ## Typische Fehler in diesem Lab
 
