@@ -45,7 +45,7 @@ Dieses Repository entsteht parallel zur Foliensammlung. Der aktuelle Stand der L
 
 ## Gerenderte HTML-Übersicht (GitHub Pages)
 
-`index.html` in diesem Repository-Root ist eine gerenderte Übersichtsseite aller neun Labs (analog zu `README.md` in Microsofts [AZ-104-Repository](https://github.com/MicrosoftLearning/AZ-104-MicrosoftAzureAdministrator), das genauso verlinkt). GitHub zeigt `.html`-Dateien im normalen Datei-Browser immer nur als Quellcode an (Sicherheitsgrund, gilt für jedes Repository) — damit der obige Link tatsächlich die gerenderte Seite zeigt statt Quellcode, muss GitHub Pages einmalig aktiviert werden:
+`index.html` in diesem Repository-Root ist eine gerenderte Übersichtsseite aller neun Labs. GitHub zeigt `.html`-Dateien im normalen Datei-Browser immer nur als Quellcode an (Sicherheitsgrund, gilt für jedes Repository) — damit der obige Link tatsächlich die gerenderte Seite zeigt statt Quellcode, muss GitHub Pages einmalig aktiviert werden:
 
 1. Auf GitHub: **Settings → Pages**
 2. **Source:** "Deploy from a branch"
