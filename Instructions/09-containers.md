@@ -140,4 +140,4 @@ Liefert `wordpressUrl` (z. B. `http://wordpress-workshop-xxxxx.westeurope.azurec
 
 ## Ausblick
 
-Damit ist der praktische Teil des Kurses abgeschlossen — der Foliensatz von Tag 4 ordnet ACI konzeptionell gegenüber AKS und Azure Container Apps ein (kein weiteres Lab, nur Vergleich) und schließt mit der Finalfolie: Azure App Service unterstützt WordPress inzwischen auch als **vollständig verwalteten Dienst** (Microsoft übernimmt Patching, Updates und Plugin-Verwaltung) — bewusst erst jetzt gezeigt, nachdem alle manuellen/deklarativen Zwischenstufen selbst durchlaufen wurden.
+Der Foliensatz von Tag 4 ordnet ACI im Anschluss konzeptionell gegenüber AKS und Azure Container Apps ein (inklusive Kostenvergleich). Danach folgt mit Lab 10 der letzte Schritt der Reifegrad-Leiter dieses Kurses: Azure App Service unterstützt WordPress inzwischen auch als **vollständig verwalteten Dienst** (Microsoft übernimmt Patching, Updates und Plugin-Verwaltung) — bewusst erst jetzt gezeigt, nachdem Sie alle manuellen/deklarativen Zwischenstufen selbst durchlaufen haben.

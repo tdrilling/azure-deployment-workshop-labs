@@ -12,7 +12,7 @@ Begleitrepository zum Azure Deployment Workshop. Enthält die Lab-Anleitungen (`
 
 ## Leitanwendung
 
-Alle Labs bauen auf **WordPress** (Apache/PHP/MySQL) als durchgängigem Beispiel auf und zeigen dieselbe Zielarchitektur auf wachsend anspruchsvollere Weise — von der manuellen Installation bis zum containerisierten Deployment und zur Erwähnung des verwalteten App-Service-Dienstes für WordPress. An ausgewählten Stellen wird das gleiche Muster kurz an einer zweiten, .NET-basierten Beispielanwendung gespiegelt.
+Alle Labs bauen auf **WordPress** (Apache/PHP/MySQL) als durchgängigem Beispiel auf und zeigen dieselbe Zielarchitektur auf wachsend anspruchsvollere Weise — von der manuellen Installation bis zum containerisierten Deployment und – im finalen Lab – zum vollständig verwalteten App-Service-Dienst für WordPress. An ausgewählten Stellen wird das gleiche Muster kurz an einer zweiten, .NET-basierten Beispielanwendung gespiegelt.
 
 ## Voraussetzungen
 
@@ -42,10 +42,11 @@ Dieses Repository entsteht parallel zur Foliensammlung. Der aktuelle Stand der L
 | 07 | App Service deklarativ | fertig (Bicep mit `az bicep build`/`lint`/`build-params` geprüft: 0 Fehler, 0 Warnungen) |
 | 08 | CI/CD mit GitHub Actions | fertig |
 | 09 | Container-Deployment | fertig (Bicep mit `az bicep build`/`lint`/`build-params` geprüft: 0 Fehler, 0 Warnungen) |
+| 10 | WordPress on Azure App Service (verwaltet) | fertig |
 
 ## Gerenderte HTML-Übersicht (GitHub Pages)
 
-`index.html` in diesem Repository-Root ist eine gerenderte Übersichtsseite aller neun Labs. GitHub zeigt `.html`-Dateien im normalen Datei-Browser immer nur als Quellcode an (Sicherheitsgrund, gilt für jedes Repository) — damit der obige Link tatsächlich die gerenderte Seite zeigt statt Quellcode, muss GitHub Pages einmalig aktiviert werden:
+`index.html` in diesem Repository-Root ist eine gerenderte Übersichtsseite aller zehn Labs. GitHub zeigt `.html`-Dateien im normalen Datei-Browser immer nur als Quellcode an (Sicherheitsgrund, gilt für jedes Repository) — damit der obige Link tatsächlich die gerenderte Seite zeigt statt Quellcode, muss GitHub Pages einmalig aktiviert werden:
 
 1. Auf GitHub: **Settings → Pages**
 2. **Source:** "Deploy from a branch"
