@@ -1,6 +1,6 @@
 # Lab 4 — WordPress deklarativ mit Bicep
 
-**Ziel:** Dieselbe Zielarchitektur wie in Lab 1/2 (Apache/PHP/MySQL/WordPress auf einer Ubuntu-VM), diesmal vollständig **deklarativ** statt imperativ (CLI/Portal, Lab 1) oder teilautomatisiert (Cloud-Init allein, Lab 2). Ab diesem Lab ist Bicep das durchgängige IaC-Werkzeug für den Rest des Kurses (Tag 3, App Service). Dateien: `Allfiles/04-bicep/main.bicep`, `Allfiles/04-bicep/modules/network.bicep`, `Allfiles/04-bicep/modules/vm.bicep`, `Allfiles/04-bicep/main.bicepparam`.
+**Ziel:** Dieselbe Zielarchitektur wie in Lab 1/2 (Apache/PHP/MySQL/WordPress auf einer Ubuntu-VM), diesmal vollständig **deklarativ** statt imperativ (CLI/Portal, Lab 1) oder teilautomatisiert (Cloud-Init allein, Lab 2). Ab diesem Lab ist Bicep das durchgängige IaC-Werkzeug für den Rest des Kurses (Block 3, App Service). Dateien: `Allfiles/04-bicep/main.bicep`, `Allfiles/04-bicep/modules/network.bicep`, `Allfiles/04-bicep/modules/vm.bicep`, `Allfiles/04-bicep/main.bicepparam`.
 
 **Dauer:** ca. 30-40 Minuten.
 
@@ -28,7 +28,7 @@ Allfiles/04-bicep/
     vm.bicep               -- die VM-Ressource selbst
 ```
 
-Modulare Aufteilung statt einer einzigen Datei — dieselbe Struktur trägt später Tag 3 (App-Service-Bicep, Lab 7): dort wird lediglich `modules/vm.bicep` gegen ein `modules/appservice.bicep` getauscht, `main.bicep` und der Grundaufbau bleiben erkennbar gleich.
+Modulare Aufteilung statt einer einzigen Datei — dieselbe Struktur trägt später Block 3 (App-Service-Bicep, Lab 7): dort wird lediglich `modules/vm.bicep` gegen ein `modules/appservice.bicep` getauscht, `main.bicep` und der Grundaufbau bleiben erkennbar gleich.
 
 ---
 
@@ -165,4 +165,4 @@ Kompiliert `main.bicep` (inkl. aller Module) zu einem einzelnen, vollständig au
 
 Lab 5 zeigt exakt dieselbe Zielarchitektur einmalig auch mit **Terraform** — nicht um Terraform als Kursschwerpunkt zu etablieren (das bleiben Bicep/ARM als Microsoft-eigene Werkzeuge), sondern um den State-File-basierten Ansatz konkret dem State-losen Modell aus diesem Lab gegenüberzustellen.
 
-Direkt im Anschluss an Tag 2 baut dieses Bicep-Fundament zwei Erweiterungen aus, ohne dass Sie bei null anfangen: **VM Scale Sets** ersetzen die Einzel-VM aus `modules/vm.bicep` für Hochverfügbarkeit, und als "erster Bruch des Monolithen" wandert die Datenbank aus `cloud-init.yaml` in einen **Azure Database for MySQL Flexible Server** — Web-/App-Schicht und Datenschicht werden damit erstmals unabhängig voneinander skalierbar. Beide Erweiterungen bauen auf `main.bicep`/`modules/network.bicep` auf, nicht auf einer neuen Vorlage.
+Direkt im Anschluss an Block 2 baut dieses Bicep-Fundament zwei Erweiterungen aus, ohne dass Sie bei null anfangen: **VM Scale Sets** ersetzen die Einzel-VM aus `modules/vm.bicep` für Hochverfügbarkeit, und als "erster Bruch des Monolithen" wandert die Datenbank aus `cloud-init.yaml` in einen **Azure Database for MySQL Flexible Server** — Web-/App-Schicht und Datenschicht werden damit erstmals unabhängig voneinander skalierbar. Beide Erweiterungen bauen auf `main.bicep`/`modules/network.bicep` auf, nicht auf einer neuen Vorlage.

@@ -1,6 +1,6 @@
 # Lab 9 — Container-Deployment (Azure Container Instances)
 
-**Ziel:** Dieselbe Zielanwendung wie in Lab 1/6/7 (WordPress, angebunden an eine Azure Database for MySQL Flexible Server), diesmal als **portables Container-Image**, lokal gebaut und getestet, dann über Azure Container Registry (ACR) nach Azure Container Instances (ACI) deployt — die dritte Hosting-Stufe der Workshop-Reise nach VM (Tag 1/2) und App Service (Tag 3). Dateien: `Allfiles/09-containers/Dockerfile`, `wp-config.php`, `docker-compose.yml`, `main.bicep`, `main.bicepparam`, `modules/mysql.bicep`, `modules/aci.bicep`.
+**Ziel:** Dieselbe Zielanwendung wie in Lab 1/6/7 (WordPress, angebunden an eine Azure Database for MySQL Flexible Server), diesmal als **portables Container-Image**, lokal gebaut und getestet, dann über Azure Container Registry (ACR) nach Azure Container Instances (ACI) deployt — die dritte Hosting-Stufe der Workshop-Reise nach VM (Block 1/2) und App Service (Block 3). Dateien: `Allfiles/09-containers/Dockerfile`, `wp-config.php`, `docker-compose.yml`, `main.bicep`, `main.bicepparam`, `modules/mysql.bicep`, `modules/aci.bicep`.
 
 **Dauer:** ca. 30-35 Minuten.
 
@@ -142,8 +142,8 @@ Liefert `wordpressUrl` (z. B. `http://wordpress-workshop-xxxxx.westeurope.azurec
 - **`dnsNameLabel already in use`:** DNS-Name-Labels für `*.azurecontainer.io` sind regionsweit eindeutig; der Default nutzt bereits `uniqueString(resourceGroup().id)`, ein manuell überschriebener Name kann kollidieren.
 
 !!! reflect "Reflexionsstop"
-    Der Foliensatz von Tag 4 vergleicht ACI, AKS und Container Apps auch nach Kosten. Für welchen typischen Einsatzzweck aus dieser Vergleichstabelle wäre genau dieses Lab — eine einzelne, dauerhaft laufende WordPress-Instanz — der wirtschaftlich schlechteste Kandidat, obwohl es didaktisch der einfachste Einstieg ist?
+    Der Foliensatz von Block 4 vergleicht ACI, AKS und Container Apps auch nach Kosten. Für welchen typischen Einsatzzweck aus dieser Vergleichstabelle wäre genau dieses Lab — eine einzelne, dauerhaft laufende WordPress-Instanz — der wirtschaftlich schlechteste Kandidat, obwohl es didaktisch der einfachste Einstieg ist?
 
 ## Ausblick
 
-Der Foliensatz von Tag 4 ordnet ACI im Anschluss konzeptionell gegenüber AKS und Azure Container Apps ein (inklusive Kostenvergleich). Danach folgt mit Lab 10 der letzte Schritt der Reifegrad-Leiter dieses Kurses: Azure App Service unterstützt WordPress inzwischen auch als **vollständig verwalteten Dienst** (Microsoft übernimmt Patching, Updates und Plugin-Verwaltung) — bewusst erst jetzt gezeigt, nachdem Sie alle manuellen/deklarativen Zwischenstufen selbst durchlaufen haben.
+Der Foliensatz von Block 4 ordnet ACI im Anschluss konzeptionell gegenüber AKS und Azure Container Apps ein (inklusive Kostenvergleich). Danach folgt mit Lab 10 der letzte Schritt der Reifegrad-Leiter dieses Kurses: Azure App Service unterstützt WordPress inzwischen auch als **vollständig verwalteten Dienst** (Microsoft übernimmt Patching, Updates und Plugin-Verwaltung) — bewusst erst jetzt gezeigt, nachdem Sie alle manuellen/deklarativen Zwischenstufen selbst durchlaufen haben.

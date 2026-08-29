@@ -11,7 +11,7 @@
 | Konzept | Was es ist | Beispiel in diesem Kurs |
 |---|---|---|
 | **VM-Erweiterung (VM Extension)** | Ein von Azure verwalteter Agent-Plugin-Mechanismus, der beim/nach dem VM-Deployment ausgeführt wird — z. B. Custom Script Extension, die **DSC-Erweiterung selbst** | Die DSC-Konfiguration in diesem Lab wird über die `Microsoft.Powershell.DSC`-Erweiterung angewendet |
-| **VM-Anwendung (VM Application)** | Ein versioniertes Anwendungspaket in der Azure Compute Gallery (Folie zu Modul 1/Tag 1, "VM-Imaging"), das unabhängig vom VM-Image erstellt, versioniert und bei Bedarf einer VM zugewiesen wird | Denkbar für dieses Szenario: WordPress selbst als VM-Anwendung verpacken statt per Skript zu deployen — im Kurs nur konzeptionell erwähnt, nicht als eigenes Lab |
+| **VM-Anwendung (VM Application)** | Ein versioniertes Anwendungspaket in der Azure Compute Gallery (Folie zu Modul 1/Block 1, "VM-Imaging"), das unabhängig vom VM-Image erstellt, versioniert und bei Bedarf einer VM zugewiesen wird | Denkbar für dieses Szenario: WordPress selbst als VM-Anwendung verpacken statt per Skript zu deployen — im Kurs nur konzeptionell erwähnt, nicht als eigenes Lab |
 | **DSC (Desired State Configuration)** | Eine deklarative PowerShell-basierte Sprache, die einen **Zielzustand** beschreibt (z. B. "IIS-Feature muss vorhanden sein") statt einer Befehlssequenz — DSC sorgt selbst dafür, diesen Zustand herzustellen und bei Abweichung wiederherzustellen | Der Kern dieses Labs: `WordPressWimpStack.ps1` |
 
 **Aktueller Stand (wichtig für den Vortrag):** Die klassische VM-DSC-Erweiterung (`Microsoft.Powershell.DSC`) befindet sich im Wartungsmodus — Microsoft verweist für neue produktive DSC-Szenarien zunehmend auf **Azure Automanage Machine Configuration** (vormals "Guest Configuration"). Für dieses Lab bleibt die klassische Erweiterung der pragmatischste Weg, da sie ohne zusätzliche Automanage-Einrichtung auskommt — im Vortrag aber explizit als "das klassische, noch weit verbreitete Werkzeug, nicht mehr die Microsoft-Zukunftsrichtung" einordnen.
@@ -105,4 +105,4 @@ Dieses Lab zeigt bewusst den **komplexeren** Weg (DSC mit reinen Script-Ressourc
 
 ## Ausblick
 
-Damit ist die imperative/automatisierte VM-Stufe abgeschlossen. Tag 2 zeigt dieselbe Zielarchitektur deklarativ (Bicep, mit einer einmaligen Terraform-Demonstration).
+Damit ist die imperative/automatisierte VM-Stufe abgeschlossen. Block 2 zeigt dieselbe Zielarchitektur deklarativ (Bicep, mit einer einmaligen Terraform-Demonstration).

@@ -1,12 +1,12 @@
 # Lab 7 — Deklaratives App-Service-Deployment (Bicep)
 
-**Ziel:** Dieselbe Zielarchitektur wie in Lab 6 (WordPress auf Azure App Service, angebunden an eine Azure Database for MySQL Flexible Server), diesmal vollständig **deklarativ** statt imperativ (CLI, Lab 6) — dasselbe Muster wie der Schritt von Lab 1 (CLI) zu Lab 4 (Bicep) an Tag 2. Bicep bleibt damit über den gesamten Kurs hinweg das durchgängige IaC-Werkzeug. Dateien: `Allfiles/07-app-service-bicep/main.bicep`, `Allfiles/07-app-service-bicep/modules/appservice.bicep`, `Allfiles/07-app-service-bicep/modules/mysql.bicep`, `Allfiles/07-app-service-bicep/main.bicepparam`.
+**Ziel:** Dieselbe Zielarchitektur wie in Lab 6 (WordPress auf Azure App Service, angebunden an eine Azure Database for MySQL Flexible Server), diesmal vollständig **deklarativ** statt imperativ (CLI, Lab 6) — dasselbe Muster wie der Schritt von Lab 1 (CLI) zu Lab 4 (Bicep) an Block 2. Bicep bleibt damit über den gesamten Kurs hinweg das durchgängige IaC-Werkzeug. Dateien: `Allfiles/07-app-service-bicep/main.bicep`, `Allfiles/07-app-service-bicep/modules/appservice.bicep`, `Allfiles/07-app-service-bicep/modules/mysql.bicep`, `Allfiles/07-app-service-bicep/main.bicepparam`.
 
 **Dauer:** ca. 25-30 Minuten.
 
 ---
 
-## Was ist neu gegenüber Lab 4 (Tag 2)?
+## Was ist neu gegenüber Lab 4 (Block 2)?
 
 Lab 4 orchestrierte zwei Module: `modules/network.bicep` (VNet/Subnet/NSG/Public-IP/NIC) und `modules/vm.bicep` (die VM selbst). Dieses Lab orchestriert ebenfalls zwei Module — aber **kein einziges davon ist `modules/network.bicep`**. Das ist bewusst so und der wichtigste didaktische Punkt dieses Labs: App Service ist eine vollständig plattformverwaltete PaaS-Umgebung. Es gibt keine eigene VM, keine NIC, keine Public IP und (in diesem einführenden Lab, ohne VNet-Integration/Private Endpoint) auch kein eigenes VNet, das dieses Template verwalten müsste. Je höher die Abstraktionsstufe (IaaS → PaaS), desto weniger Infrastruktur-Boilerplate bleibt im Template übrig — dieselbe fünf Netzwerkressourcen aus Lab 4 entfallen hier komplett.
 
@@ -120,4 +120,4 @@ Dieselben Vorteile wie bereits bei Lab 4 gegenüber Lab 1 besprochen (Deklarativ
 
 Lab 8 (CI/CD mit GitHub Actions) nutzt genau die `"staging"`-Slot, die dieses Template anlegt: eine echte Pipeline baut den WordPress-Code, deployt ihn in diese Slot und tauscht sie anschließend per Swap in die Produktion — der Build-Deploy-Swap-Ablauf, der in Schritt 18 des Kurskonzepts (Deployment Slots, Slot Swap) vorbereitet wird.
 
-Punkt 20 des Kurskonzepts ("Leichter .NET-Checkpoint") spiegelt dieselbe `modules/appservice.bicep`-Vorlage kurz an der zweiten Beispielanwendung — konzeptionell, kein eigenes Vollab, analog zu den .NET-Checkpoints an Tag 1.
+Punkt 20 des Kurskonzepts ("Leichter .NET-Checkpoint") spiegelt dieselbe `modules/appservice.bicep`-Vorlage kurz an der zweiten Beispielanwendung — konzeptionell, kein eigenes Vollab, analog zu den .NET-Checkpoints an Block 1.

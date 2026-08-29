@@ -1,18 +1,18 @@
 # Lab 6 — Manuelles PHP-Deployment auf App Service
 
-**Ziel:** WordPress läuft zum ersten Mal im Kurs **nicht** auf einer selbst verwalteten VM, sondern auf **Azure App Service** (PaaS) — Apache/PHP-Laufzeit, Betriebssystem und Patching übernimmt Azure, Sie liefern nur noch Code. Dazu kommt zum ersten Mal ein echter **Azure Database for MySQL Flexible Server**, gegen den WordPress produktiv verbindet (Tag 2 hat den Dienst nur konzeptionell als "Bruch des Monolithen" erwähnt, ohne eigenes Lab). Genau wie Lab 1 an Tag 1 ist dieses Lab bewusst **manuell/imperativ** — die erste Berührung mit App Service, bevor Lab 7 dieselbe Architektur deklarativ mit Bicep nachbaut.
+**Ziel:** WordPress läuft zum ersten Mal im Kurs **nicht** auf einer selbst verwalteten VM, sondern auf **Azure App Service** (PaaS) — Apache/PHP-Laufzeit, Betriebssystem und Patching übernimmt Azure, Sie liefern nur noch Code. Dazu kommt zum ersten Mal ein echter **Azure Database for MySQL Flexible Server**, gegen den WordPress produktiv verbindet (Block 2 hat den Dienst nur konzeptionell als "Bruch des Monolithen" erwähnt, ohne eigenes Lab). Genau wie Lab 1 an Block 1 ist dieses Lab bewusst **manuell/imperativ** — die erste Berührung mit App Service, bevor Lab 7 dieselbe Architektur deklarativ mit Bicep nachbaut.
 
 **Dauer:** ca. 45–60 Minuten.
 
 ---
 
-## Bridge: Warum PaaS an dieser Stelle, und was ist neu gegenüber Tag 1/2?
+## Bridge: Warum PaaS an dieser Stelle, und was ist neu gegenüber Block 1/2?
 
-Tag 1 und Tag 2 haben ausschließlich **Infrastructure as a Service** behandelt: Sie haben eine VM angelegt (Lab 1 manuell, Lab 2 per Cloud-Init, Lab 4 per Bicep) und waren damit für alles verantwortlich, was *auf* dieser VM läuft — Betriebssystem-Updates, Apache-Konfiguration, PHP-Version, offene Ports, SSH-Zugriff. Das gibt maximale Kontrolle, aber auch maximalen Betriebsaufwand.
+Block 1 und Block 2 haben ausschließlich **Infrastructure as a Service** behandelt: Sie haben eine VM angelegt (Lab 1 manuell, Lab 2 per Cloud-Init, Lab 4 per Bicep) und waren damit für alles verantwortlich, was *auf* dieser VM läuft — Betriebssystem-Updates, Apache-Konfiguration, PHP-Version, offene Ports, SSH-Zugriff. Das gibt maximale Kontrolle, aber auch maximalen Betriebsaufwand.
 
 **App Service** verschiebt diese Verantwortungsgrenze: Azure betreibt eine vorkonfigurierte, gepatchte Linux-Umgebung mit Apache und PHP fertig für Sie — Sie liefern nur noch den WordPress-Code und die Konfiguration (Umgebungsvariablen), die dieser Code braucht. Es gibt in diesem Lab **keine VM-Ressource**, **keinen SSH-Zugriff**, **kein Cloud-Init**, **kein NSG** und **kein VNet**, das Sie selbst anlegen müssten. Das ist der eigentliche didaktische Kernpunkt dieses Labs: Sie erleben direkt im Kontrast zu Lab 1 (identisches Zielergebnis — WordPress läuft), wie viel Betriebs-Boilerplate PaaS Ihnen abnimmt — und was Sie dafür an OS-Kontrolle aufgeben.
 
-Der zweite neue Baustein ist die Datenbank: Bisher lief MySQL in Lab 1/2/4 immer *auf derselben VM* wie Apache/PHP (Cloud-Init installiert `mysql-server` lokal). Ab diesem Lab ist die Datenbank ein **eigener, separat skalierbarer Azure-Dienst** — Azure Database for MySQL Flexible Server. Das ist derselbe "Bruch des Monolithen", der in Tag 2 nur als Konzept an Lab 4/5 angehängt wurde; hier wird er zum ersten Mal tatsächlich provisioniert und real angebunden.
+Der zweite neue Baustein ist die Datenbank: Bisher lief MySQL in Lab 1/2/4 immer *auf derselben VM* wie Apache/PHP (Cloud-Init installiert `mysql-server` lokal). Ab diesem Lab ist die Datenbank ein **eigener, separat skalierbarer Azure-Dienst** — Azure Database for MySQL Flexible Server. Das ist derselbe "Bruch des Monolithen", der in Block 2 nur als Konzept an Lab 4/5 angehängt wurde; hier wird er zum ersten Mal tatsächlich provisioniert und real angebunden.
 
 ## Voraussetzungen
 
@@ -26,7 +26,7 @@ Der zweite neue Baustein ist die Datenbank: Bisher lief MySQL in Lab 1/2/4 immer
 az group create --name rg-appservice-lab --location westeurope
 ```
 
-Eigener Name (`rg-appservice-lab`), getrennt von den VM-Ressourcengruppen aus Tag 1/2 — Sie könnten dieses Lab parallel zu jedem der vorherigen laufen lassen, ohne Namenskollisionen.
+Eigener Name (`rg-appservice-lab`), getrennt von den VM-Ressourcengruppen aus Block 1/2 — Sie könnten dieses Lab parallel zu jedem der vorherigen laufen lassen, ohne Namenskollisionen.
 
 ## Schritt 2: App Service Plan anlegen (Linux, B1)
 
@@ -62,7 +62,7 @@ und den tatsächlich unterstützten PHP-Eintrag aus der Ausgabe in Schritt 3 ein
 
 ## Schritt 4: Azure Database for MySQL Flexible Server provisionieren
 
-Dies ist die erste tatsächliche Bereitstellung eines Flexible Servers im Kurs (Tag 2 hat den Dienst nur an der Tafel/im Foliensatz erwähnt).
+Dies ist die erste tatsächliche Bereitstellung eines Flexible Servers im Kurs (Block 2 hat den Dienst nur an der Tafel/im Foliensatz erwähnt).
 
 ```bash
 az mysql flexible-server create \
@@ -205,9 +205,9 @@ oder direkt die URL öffnen: `https://app-wordpress-<IHR-SUFFIX>.azurewebsites.n
 
 ---
 
-## Vergleich: Tag 1/2 (IaaS) vs. dieses Lab (PaaS)
+## Vergleich: Block 1/2 (IaaS) vs. dieses Lab (PaaS)
 
-| | Tag 1/2 (VM) | Lab 6 (App Service) |
+| | Block 1/2 (VM) | Lab 6 (App Service) |
 |---|---|---|
 | SSH-Zugriff | ja, zwingend für Setup | entfällt vollständig |
 | Betriebssystem-Patching | in Ihrer Verantwortung | von Azure übernommen |
@@ -215,7 +215,7 @@ oder direkt die URL öffnen: `https://app-wordpress-<IHR-SUFFIX>.azurewebsites.n
 | Webserver-Prozess (Apache) | selbst installiert/konfiguriert | vorkonfiguriert von Azure bereitgestellt |
 | Was Sie deployen | ein komplettes VM-Image/Skript | nur Anwendungscode (Zip) |
 | Feingranulare OS-Kontrolle | voll vorhanden | nicht vorhanden (kein Root-Zugriff auf den Host) |
-| Skalierung | manuell (VM-Größe, Scale Sets in Tag 2) | über den App Service Plan, ohne VM-Verwaltung |
+| Skalierung | manuell (VM-Größe, Scale Sets in Block 2) | über den App Service Plan, ohne VM-Verwaltung |
 
 Der Punkt in der letzten Zeile der Tabelle ist die Kehrseite: Was Sie in Schritt 2–8 an SSH/NSG/Cloud-Init-Aufwand **nicht** hatten, bezahlen Sie mit weniger Kontrolle — kein Zugriff auf das darunterliegende Betriebssystem, keine eigene Softwareinstallation außerhalb dessen, was die PHP-Laufzeit und App Settings hergeben.
 
@@ -233,6 +233,6 @@ Der Punkt in der letzten Zeile der Tabelle ist die Kehrseite: Was Sie in Schritt
 
 ## Ausblick
 
-Lab 7 baut exakt dieselbe Zielarchitektur — App Service Plan, Web App mit PHP-Runtime, MySQL Flexible Server, App Settings — **deklarativ mit Bicep**, im selben modularen Aufbau wie Lab 4 (`main.bicep` + `modules/`). Der direkte Vergleich zu diesem Lab macht denselben Punkt wie der Übergang von Lab 1 zu Lab 4 an Tag 1: Sie sehen dieselbe Ressourcenliste, diesmal als Zielzustand statt als Befehlsfolge.
+Lab 7 baut exakt dieselbe Zielarchitektur — App Service Plan, Web App mit PHP-Runtime, MySQL Flexible Server, App Settings — **deklarativ mit Bicep**, im selben modularen Aufbau wie Lab 4 (`main.bicep` + `modules/`). Der direkte Vergleich zu diesem Lab macht denselben Punkt wie der Übergang von Lab 1 zu Lab 4 an Block 1: Sie sehen dieselbe Ressourcenliste, diesmal als Zielzustand statt als Befehlsfolge.
 
-Lab 8 automatisiert anschließend genau diesen Deployment-Schritt (Schritt 7 oben) über eine echte CI/CD-Pipeline mit GitHub Actions — Build, Deploy in einen Staging-Slot, Slot-Swap — sodass `az webapp deploy` von Hand nach Tag 3 nicht mehr nötig ist.
+Lab 8 automatisiert anschließend genau diesen Deployment-Schritt (Schritt 7 oben) über eine echte CI/CD-Pipeline mit GitHub Actions — Build, Deploy in einen Staging-Slot, Slot-Swap — sodass `az webapp deploy` von Hand nach Block 3 nicht mehr nötig ist.

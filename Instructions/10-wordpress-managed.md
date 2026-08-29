@@ -12,7 +12,7 @@ Lab 6 und Lab 7 haben WordPress auf App Service gebracht — aber in beiden Fäl
 
 **„WordPress on Azure App Service"** ist etwas kategorial anderes: ein von Microsoft kuratiertes Marketplace-Angebot, das WordPress als Produkt kennt. Der Assistent legt in einem Durchgang an: die Web App (auf **Linux mit NGINX**, nicht Apache — ein bewusster Unterschied zu Ihrer eigenen Lab-6/7-Umgebung), einen MySQL Flexible Server, und optional Managed Identity, Azure Content Delivery Network, Azure Front Door sowie Azure Blob Storage für ausgelagerte Medien. WordPress-Core-, PHP-, NGINX- und Betriebssystem-Updates übernimmt Azure danach automatisch.
 
-**Der entscheidende Kontrast zur Vorfolie im Kurs:** Dieses Angebot ist bewusst erst am Kursende dran. Hätten Sie es an Tag 1 gesehen, wäre es eine Blackbox gewesen — jetzt wissen Sie aus eigener Erfahrung, was hinter jedem der Häkchen im Assistenten tatsächlich passiert, weil Sie es in Lab 6/7 von Hand gebaut haben.
+**Der entscheidende Kontrast zur Vorfolie im Kurs:** Dieses Angebot ist bewusst erst am Kursende dran. Hätten Sie es an Block 1 gesehen, wäre es eine Blackbox gewesen — jetzt wissen Sie aus eigener Erfahrung, was hinter jedem der Häkchen im Assistenten tatsächlich passiert, weil Sie es in Lab 6/7 von Hand gebaut haben.
 
 ## Voraussetzungen
 

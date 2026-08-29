@@ -1,6 +1,6 @@
 # Azure Deployment Workshop — Lab-Repository
 
-Begleitrepository zum Azure Deployment Workshop. Enthält die Lab-Anleitungen (`Instructions/`) und die dazugehörigen Deployment-Artefakte (`Allfiles/`), organisiert nach Kurstagen und Reifegraden — vom manuellen VM-Deployment bis zu App Services/Containern.
+Begleitrepository zum Azure Deployment Workshop. Enthält die Lab-Anleitungen (`Instructions/`) und die dazugehörigen Deployment-Artefakte (`Allfiles/`), organisiert nach Blöcken und Reifegraden — vom manuellen VM-Deployment bis zu App Services/Containern.
 
 **[Link zu den Lab-Anleitungen (HTML-Übersicht)](https://tdrilling.github.io/azure-deployment-workshop-labs/)** — dieselbe Übersicht wie unten, aber gerendert statt als Quellcode (siehe Hinweis unten zu GitHub Pages).
 
@@ -25,7 +25,7 @@ Alle Labs bauen auf **WordPress** (Apache/PHP/MySQL) als durchgängigem Beispiel
 
 ## Sicherheitshinweis zu den Lab-Dateien
 
-Einige Skripte enthalten aus didaktischen Gründen Platzhalter-Kennwörter im Klartext (klar mit `<CHANGE_ME>` markiert). Das ist **ausschließlich für den Lab-Kontext** akzeptabel. In produktiven Deployments gehören Geheimnisse in Azure Key Vault bzw. werden zur Laufzeit injiziert — dieses Muster wird an Tag 3 (App Services) explizit behandelt und sollte in eigenen Projekten von Anfang an angewendet werden.
+Einige Skripte enthalten aus didaktischen Gründen Platzhalter-Kennwörter im Klartext (klar mit `<CHANGE_ME>` markiert). Das ist **ausschließlich für den Lab-Kontext** akzeptabel. In produktiven Deployments gehören Geheimnisse in Azure Key Vault bzw. werden zur Laufzeit injiziert — dieses Muster wird an Block 3 (App Services) explizit behandelt und sollte in eigenen Projekten von Anfang an angewendet werden.
 
 ## Status
 
