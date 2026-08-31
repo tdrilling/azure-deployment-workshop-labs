@@ -85,10 +85,11 @@ Configuration WordPressWimpStack {
         Script InstallMySql {
             SetScript = {
                 $msiUrl = "https://ctdeployartidacts.blob.core.windows.net/dsc/mysql-installer-community-8.0.39.0.msi"
-                # ACHTUNG (31.08.2026): dev.mysql.com UND der archives.mysql.com-Downloadpfad
-                # blocken automatisierte Downloads von der Lab-VM aus mit 403 Forbidden (Oracle-
-                # Bot-Schutz), auch mit Browser-User-Agent -- ist kein zuverlaessiger Downloadpfad
-                # fuer diesen Anwendungsfall. Loesung: Installer EINMALIG per eigenem Browser von
+                # ACHTUNG: dev.mysql.com UND der archives.mysql.com-Downloadpfad blocken
+                # automatisierte Downloads von Azure-Rechenzentrums-IPs mit 403 Forbidden
+                # (Oracle-Bot-Schutz), auch mit Browser-User-Agent -- kein zuverlaessiger
+                # Downloadpfad fuer diesen Anwendungsfall. Loesung: Installer EINMALIG per
+                # eigenem Browser von
                 # https://downloads.mysql.com/archives/installer/ (Version 8.0.39.0, community/offline)
                 # herunterladen und in den eigenen Blob-Container hochladen:
                 #   az storage blob upload --account-name ctdeployartidacts --container-name dsc \

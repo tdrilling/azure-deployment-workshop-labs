@@ -45,11 +45,13 @@ In `WordPressWimpStack.ps1` gibt es zwei **Pflichtparameter**, die nicht im Skri
 
 Der von Ihnen gewählte `MySqlRootPassword`-Wert wird vom Skript an zwei Stellen verwendet: zuerst um das MySQL-Root-Kennwort beim Silent-Install zu **setzen** (`InstallMySql`-Schritt: `--root_password=$using:MySqlRootPassword`), danach um sich beim Anlegen der WordPress-Datenbank als root **anzumelden** (`CreateWpDatabase`-Schritt). Beide Stellen sehen automatisch denselben Wert, solange Sie ihn in Schritt 4 nur an der einen dafür vorgesehenen Stelle eintragen — Sie müssen nichts synchron halten.
 
-**Korrektur gegenüber einer früheren Fassung dieser Anleitung:** Hier stand zuvor, die Kennwörter würden über eine separate `PSDscConfiguration.json`-Datei übergeben. Diese Datei existiert in diesem Lab nicht. Tatsächlich übergeben Sie beide Kennwörter direkt, aber verschlüsselt, über `--protected-settings` im `az vm extension set`-Aufruf — siehe Schritt 4.
+Beide Kennwörter übergeben Sie direkt, aber verschlüsselt, über `--protected-settings` im `az vm extension set`-Aufruf — siehe Schritt 4.
 
-## Schritt 3: PowerShell-Skript als ZIP in den Storage Account hochladen
+## Schritt 3: Abhängigkeiten in den Storage Account hochladen
 
-**Das ist Voraussetzung für Schritt 4, nicht optional.** Die DSC-Erweiterung lädt die Konfiguration zur Laufzeit von einer URL (`configuration.url` im Extension-Aufruf, Schritt 4) herunter und kompiliert sie erst auf der VM. Diese URL muss auf ein **ZIP-Archiv** zeigen, das `WordPressWimpStack.ps1` enthält. Führen Sie diesen Schritt **vor** dem `az vm extension set`-Aufruf aus — sonst zeigt `configuration.url` in Schritt 4 ins Leere und die Erweiterung schlägt fehl.
+**Das ist Voraussetzung für Schritt 4, nicht optional — zwei Dateien müssen vorher bereitstehen.** Die DSC-Erweiterung lädt die Konfiguration zur Laufzeit von einer URL (`configuration.url` im Extension-Aufruf, Schritt 4) herunter und kompiliert sie erst auf der VM. Das PowerShell-Skript lädt seinerseits beim Ausführen den MySQL Installer nach — auch diese Datei muss vorher erreichbar sein, sonst schlägt Schritt 4 mit `403 Forbidden` fehl (siehe 3b).
+
+### 3a. PowerShell-Skript als ZIP
 
 ```bash
 # Container einmalig anlegen, falls er noch nicht existiert:
@@ -68,9 +70,26 @@ az storage blob upload \
 
 Anonymer Lesezugriff auf den Container (`--public-access blob`) ist der einfachste Weg für dieses Lab; alternativ ein SAS-Token an `configuration.url` anhängen, wenn der Storage Account keinen anonymen Zugriff erlaubt.
 
+### 3b. MySQL Installer (einmalig, manuell — nicht automatisierbar)
+
+`dev.mysql.com` und auch der MySQL-Archiv-Downloadpfad blocken automatisierte Downloads von Azure-Rechenzentrums-IP-Adressen mit `403 Forbidden` (Oracle Bot-/Scraper-Schutz), auch mit gesetztem Browser-User-Agent. Ein Skript kann die Datei deshalb nicht selbst besorgen — Browser-Downloads sind vom Schutz nicht betroffen:
+
+1. Version 8.0.39.0 (community, **offline**-Installer, nicht die kleine "web"-Variante) einmalig per eigenem Browser laden: https://downloads.mysql.com/archives/installer/
+2. In denselben Container hochladen:
+
+```bash
+az storage blob upload \
+  --account-name <STORAGE-ACCOUNT> \
+  --container-name dsc \
+  --name mysql-installer-community-8.0.39.0.msi \
+  --file mysql-installer-community-8.0.39.0.msi
+```
+
+`$msiUrl` in `WordPressWimpStack.ps1` zeigt bereits auf `https://<STORAGE-ACCOUNT>.blob.core.windows.net/dsc/mysql-installer-community-8.0.39.0.msi` — Storage-Account-Namen im Skript ggf. an den tatsächlich verwendeten anpassen. Dieser Schritt ist **einmalig pro Storage Account**, nicht pro Kurstermin — nur nach dem Anlegen eines neuen/anderen Storage Accounts wiederholen.
+
 ## Schritt 4: DSC-Erweiterung auf die VM anwenden
 
-**Korrektur (nach Testlauf 31.08.2026):** Die ältere `ModulesUrl`/`ConfigurationFunction`/`Items`-Schreibweise, die hier zuvor stand, führt mit aktuellen Extension-Versionen (getestet: 2.83.5) zu `The DSC Extension failed to execute: Mandatory parameter MySqlRootPassword is missing` — obwohl der Wert korrekt in `Items` steht. Grund: `Items` allein deklariert der Erweiterung nicht, dass es sich um ein Argument der Konfigurationsfunktion handelt; dafür wäre zusätzlich ein `Properties`-Array in `--settings` nötig gewesen (ältere Schema-Generation), das hier fehlte. Die aktuelle, von Microsoft dokumentierte Schreibweise verwendet stattdessen `configuration` (verschachtelt: `url`/`script`/`function`) und ein flaches `configurationArguments`-Dictionary, direkt nach Parametername benannt — kein separates `Properties`/`Items`-Paar mehr nötig:
+Die Konfigurationsargumente werden als flaches `configurationArguments`-Dictionary übergeben, benannt nach den Parametern der Konfigurationsfunktion — sensible Werte gehören nach `protectedSettings.configurationArguments` (verschlüsselt), unkritische nach `settings.configurationArguments` (Klartext im Ressourcen-Manifest sichtbar):
 
 ```bash
 az vm extension set \
@@ -114,14 +133,9 @@ Bei `"code": "ProvisioningState/succeeded"` ist die Konfiguration angewendet. Da
 ## Troubleshooting
 
 - **Erweiterung meldet `ProvisioningState/failed`:** Detail-Logs liegen auf der VM unter `C:\WindowsAzure\Logs\Plugins\Microsoft.Powershell.DSC\<Version>\` — insbesondere `DscExtensionHandler.log`. Per RDP verbinden (Port 3389, aus Schritt 1 geöffnet) und dort nachsehen.
-- **PHP-Download schlägt mit `404 Not Found` fehl:** `windows.php.net/downloads/releases/` (ohne `/archives/`) hält nur die jeweils aktuelle(n) Version(en) vor. **Behoben (31.08.2026, getestet, funktioniert):** `$phpUrl` in `WordPressWimpStack.ps1` zeigt auf den dauerhaften Archiv-Pfad `windows.php.net/downloads/releases/archives/...` — per `Invoke-WebRequest -Method Head` von einer echten Lab-VM aus mit `200 OK` bestätigt.
-- **MySQL-Download schlägt mit `403 Forbidden` fehl (DSC-Fehler `MSFT_ScriptResource ... Set-TargetResource`, oft mit einer Oracle-„Technical Difficulties"-Fehlerseite als Body):** `dev.mysql.com/get/Downloads/MySQLInstaller/...` hält nur die aktuelle Version vor — das war die erste Vermutung. Der vermeintliche dauerhafte Archiv-Pfad (`downloads.mysql.com/archives/get/p/25/file/...`) sah in einem einzelnen externen Test funktionsfähig aus, wurde aber am 31.08.2026 von einer echten Lab-VM aus wiederholt mit `403 Forbidden` blockiert — auch mit gesetztem Browser-User-Agent. Das ist vermutlich Oracles Bot-/Scraper-Schutz auf Azure-Rechenzentrums-IP-Bereichen, kein instabiler Link. **Kein zuverlässiger direkter Downloadpfad für automatisierte Installation.** Lösung: MySQL Installer **einmalig selbst hosten**, statt auf Oracles Downloadinfrastruktur während des Kurses zu vertrauen:
-  1. Version 8.0.39.0 (community, offline-Installer) einmalig per **eigenem Browser** herunterladen: https://downloads.mysql.com/archives/installer/ (Browser-Downloads sind vom Bot-Schutz nicht betroffen, nur automatisierte Requests).
-  2. In den ohnehin schon genutzten Blob-Container hochladen: `az storage blob upload --account-name <STORAGE-ACCOUNT> --container-name dsc --name mysql-installer-community-8.0.39.0.msi --file mysql-installer-community-8.0.39.0.msi`.
-  3. `$msiUrl` in `WordPressWimpStack.ps1` zeigt bereits auf dieses Muster (`https://<STORAGE-ACCOUNT>.blob.core.windows.net/dsc/mysql-installer-community-8.0.39.0.msi`) — Storage-Account-Namen im Skript ggf. an den tatsächlich verwendeten anpassen.
-
-  **Generelle Lehre für den Kurstermin:** Für eine Live-Session keine Schritte einbauen, die während der Durchführung von der Erreichbarkeit fremder Downloadinfrastruktur abhängen (Oracle, aber grundsätzlich jeder Drittanbieter) — alles, was heruntergeladen werden muss, vorher einmal selbst besorgen und im eigenen Storage Account bereitstellen. WordPress.org (Lab 2, Lab 3 Schritt „WordPress deployen", Lab 9) ist davon ausgenommen: `wordpress.org/latest.zip` bzw. versionierte `wordpress-X.tar.gz`-URLs sind dauerhaft und ohne Bot-Schutz erreichbar, dort besteht dieses Risiko nicht.
-- **MySQL-Installer-CLI-Aufruf schlägt fehl (anderer Fehler als 403/404):** die genaue Kommandozeilensyntax von `MySQLInstallerConsole.exe` ändert sich gelegentlich zwischen Installer-Versionen — vor dem Kurstermin gegen die tatsächlich referenzierte Version (8.0.39) testen.
+- **PHP-Download schlägt mit `404 Not Found` fehl:** `windows.php.net/downloads/releases/` (ohne `/archives/`) hält nur die jeweils aktuelle(n) Version(en) vor. `$phpUrl` in `WordPressWimpStack.ps1` zeigt deshalb auf den dauerhaften Archiv-Pfad `windows.php.net/downloads/releases/archives/...`.
+- **MySQL-Download schlägt mit `403 Forbidden` fehl:** Schritt 3b wurde übersprungen, oder der Storage-Account-Name im Skript stimmt nicht mit dem tatsächlich verwendeten überein — siehe Schritt 3b.
+- **MySQL-Installer-CLI-Aufruf schlägt fehl (anderer Fehler als 403/404):** die genaue Kommandozeilensyntax von `MySQLInstallerConsole.exe` ändert sich gelegentlich zwischen Installer-Versionen — gegen die tatsächlich referenzierte Version (8.0.39) prüfen.
 - **appcmd.exe-Aufrufe schlagen mit "already exists" fehl:** passiert bei einem zweiten `Start-DscConfiguration`-Lauf auf derselben VM, da `TestScript` für `InstallPhp` nur die Datei prüft, nicht die IIS-Konfiguration — für Wiederholungsläufe im Kurs ggf. mit einer frischen VM arbeiten.
 
 ## Einordnung für den Vortrag
