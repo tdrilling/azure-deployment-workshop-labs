@@ -136,7 +136,7 @@ Das Ergebnis: Bicep ist ausschließlich für die **Infrastruktur** zuständig (N
 - **Wiederholbarkeit/Idempotenz:** Ein zweiter `az deployment group create`-Lauf mit unveränderten Parametern ändert nichts (ARM erkennt: Ist-Zustand = Soll-Zustand). Ein zweiter `az vm create`-Lauf aus Lab 1 mit demselben VM-Namen schlägt dagegen schlicht fehl oder verhält sich je nach vorhandenen Ressourcen uneinheitlich.
 - **`what-if` als Trockenlauf** (Schritt 3): zeigt die geplanten Änderungen, bevor sie angewendet werden — bei der CLI aus Lab 1 gibt es dafür kein Äquivalent, dort sieht man das Ergebnis erst nach der Ausführung.
 - **Kein State-File:** Bicep/ARM braucht — anders als Terraform (Lab 5, einmalige Demonstration) — **keine separate State-Datei**, die den zuletzt bekannten Zustand verfolgt. Der "State" ist implizit die Resource-Group selbst; ARM fragt bei jedem Deployment den tatsächlichen Azure-Zustand live ab. Das vermeidet eine ganze Fehlerklasse (State-Drift, State-Locking bei Teamarbeit), die bei Terraform explizit gemanagt werden muss — im Kurs bei der Terraform-Demo als Kontrast wieder aufgreifen.
-- **Modularität** (siehe `modules/`): Wiederverwendbare Bausteine, die sich — wie oben erwähnt — direkt in Tag-3-Labs weiterverwenden lassen.
+- **Modularität** (siehe `modules/`): Wiederverwendbare Bausteine, die sich — wie oben erwähnt — direkt in Labs von Block 3 weiterverwenden lassen.
 
 ## Von Bicep zu ARM
 

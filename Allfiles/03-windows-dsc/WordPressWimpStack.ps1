@@ -21,7 +21,7 @@ Configuration WordPressWimpStack {
 
     param(
         [Parameter(Mandatory = $true)]
-        [string] $MySqlRootPassword,   # per ConfigurationData uebergeben, siehe Instructions/03-windows-dsc.md
+        [string] $MySqlRootPassword,   # per --protected-settings (az vm extension set) uebergeben, siehe Instructions/03-windows-dsc.md
 
         [string] $WpDbName = "wordpress",
         [string] $WpDbUser = "wpuser",

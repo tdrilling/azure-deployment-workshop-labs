@@ -39,11 +39,38 @@ az vm open-port --resource-group rg-wimp-lab --name vm-wimp-01 --port 3389 --pri
 
 `Standard_D2s_v5` statt `Standard_B2s` — Windows Server + IIS + MySQL brauchen für ein reibungsloses Lab mehr Arbeitsspeicher als die schlanke Linux-Variante aus Lab 1/2 (B-Serie ist "burstable" und für diesen Workload eher knapp bemessen).
 
-## Schritt 2: DSC-Konfigurationsdaten vorbereiten
+## Schritt 2: MySQL-Root- und WordPress-DB-Kennwort festlegen
 
-In `WordPressWimpStack.ps1` gibt es zwei Parameter, die **beim Aufruf** übergeben werden (nicht im Skript selbst hartkodiert): `MySqlRootPassword` und `WpDbPassword`. Für die VM-Erweiterung werden diese über eine separate, **nicht ins Repository eingecheckte** `PSDscConfiguration.json`-Datei übergeben (siehe Schritt 3) — genau aus dem Grund, den das Sicherheits-Kapitel in Modul 6 des Vorgängerkurses bereits behandelt hat: Secrets gehören nicht in versionierten Code.
+In `WordPressWimpStack.ps1` gibt es zwei **Pflichtparameter**, die nicht im Skript hartkodiert sind: `MySqlRootPassword` und `WpDbPassword`. **Sie legen beide Werte selbst fest** — es gibt kein "richtiges" Kennwort, das schon irgendwo im Skript steht. Notieren Sie sich jetzt zwei Kennwörter Ihrer Wahl; Sie tragen sie in Schritt 4 ein.
 
-## Schritt 3: DSC-Erweiterung auf die VM anwenden
+Der von Ihnen gewählte `MySqlRootPassword`-Wert wird vom Skript an zwei Stellen verwendet: zuerst um das MySQL-Root-Kennwort beim Silent-Install zu **setzen** (`InstallMySql`-Schritt: `--root_password=$using:MySqlRootPassword`), danach um sich beim Anlegen der WordPress-Datenbank als root **anzumelden** (`CreateWpDatabase`-Schritt). Beide Stellen sehen automatisch denselben Wert, solange Sie ihn in Schritt 4 nur an der einen dafür vorgesehenen Stelle eintragen — Sie müssen nichts synchron halten.
+
+**Korrektur gegenüber einer früheren Fassung dieser Anleitung:** Hier stand zuvor, die Kennwörter würden über eine separate `PSDscConfiguration.json`-Datei übergeben. Diese Datei existiert in diesem Lab nicht. Tatsächlich übergeben Sie beide Kennwörter direkt, aber verschlüsselt, über `--protected-settings` im `az vm extension set`-Aufruf — siehe Schritt 4.
+
+## Schritt 3: PowerShell-Skript als ZIP in den Storage Account hochladen
+
+**Das ist Voraussetzung für Schritt 4, nicht optional.** Die DSC-Erweiterung lädt die Konfiguration zur Laufzeit von einer URL (`ModulesUrl`) herunter und kompiliert sie erst auf der VM. Diese URL muss auf ein **ZIP-Archiv** zeigen, das `WordPressWimpStack.ps1` enthält. Führen Sie diesen Schritt **vor** dem `az vm extension set`-Aufruf aus — sonst zeigt `ModulesUrl` in Schritt 4 ins Leere und die Erweiterung schlägt fehl.
+
+```bash
+# Container einmalig anlegen, falls er noch nicht existiert:
+az storage container create \
+  --account-name <STORAGE-ACCOUNT> \
+  --name dsc \
+  --public-access blob
+
+zip WordPressWimpStack.ps1.zip WordPressWimpStack.ps1
+az storage blob upload \
+  --account-name <STORAGE-ACCOUNT> \
+  --container-name dsc \
+  --name WordPressWimpStack.ps1.zip \
+  --file WordPressWimpStack.ps1.zip
+```
+
+Anonymer Lesezugriff auf den Container (`--public-access blob`) ist der einfachste Weg für dieses Lab; alternativ ein SAS-Token an die `ModulesUrl` anhängen, wenn der Storage Account keinen anonymen Zugriff erlaubt.
+
+## Schritt 4: DSC-Erweiterung auf die VM anwenden
+
+Tragen Sie hier Ihre beiden Kennwörter aus Schritt 2 ein — ersetzen Sie **beide** `<CHANGE_ME>`-Platzhalter durch selbst gewählte Werte, nicht durch den Platzhaltertext selbst:
 
 ```bash
 az vm extension set \
@@ -64,20 +91,9 @@ az vm extension set \
     }'
 ```
 
-**Wichtiger Praxispunkt:** `ModulesUrl` muss auf ein **ZIP-Archiv** zeigen, das die `.ps1`-Datei enthält — die DSC-Erweiterung lädt und kompiliert die Konfiguration selbst zur Laufzeit auf der VM. Das ZIP muss vorher hochgeladen werden, z. B. in einen Storage-Account-Blob-Container mit anonymem Lesezugriff oder per SAS-Token:
+`--protected-settings` verschlüsselt die übergebenen Parameter innerhalb der Erweiterung (im Gegensatz zu `--settings`, die im Klartext im Ressourcen-Manifest sichtbar wären) — deshalb müssen die beiden Kennwörter dort und nicht in `--settings` stehen. `ModulesUrl` muss exakt auf das in Schritt 3 hochgeladene ZIP zeigen.
 
-```bash
-zip WordPressWimpStack.ps1.zip WordPressWimpStack.ps1
-az storage blob upload \
-  --account-name <STORAGE-ACCOUNT> \
-  --container-name dsc \
-  --name WordPressWimpStack.ps1.zip \
-  --file WordPressWimpStack.ps1.zip
-```
-
-`--protected-settings` verschlüsselt die übergebenen Parameter innerhalb der Erweiterung (im Gegensatz zu `--settings`, die im Klartext im Ressourcen-Manifest sichtbar wären) — deshalb müssen die beiden Kennwörter dort und nicht in `--settings` stehen.
-
-## Schritt 4: Ausführung prüfen
+## Schritt 5: Ausführung prüfen
 
 ```bash
 az vm extension show \
