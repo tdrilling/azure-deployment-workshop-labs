@@ -49,7 +49,7 @@ Der von Ihnen gewählte `MySqlRootPassword`-Wert wird vom Skript an zwei Stellen
 
 ## Schritt 3: PowerShell-Skript als ZIP in den Storage Account hochladen
 
-**Das ist Voraussetzung für Schritt 4, nicht optional.** Die DSC-Erweiterung lädt die Konfiguration zur Laufzeit von einer URL (`ModulesUrl`) herunter und kompiliert sie erst auf der VM. Diese URL muss auf ein **ZIP-Archiv** zeigen, das `WordPressWimpStack.ps1` enthält. Führen Sie diesen Schritt **vor** dem `az vm extension set`-Aufruf aus — sonst zeigt `ModulesUrl` in Schritt 4 ins Leere und die Erweiterung schlägt fehl.
+**Das ist Voraussetzung für Schritt 4, nicht optional.** Die DSC-Erweiterung lädt die Konfiguration zur Laufzeit von einer URL (`configuration.url` im Extension-Aufruf, Schritt 4) herunter und kompiliert sie erst auf der VM. Diese URL muss auf ein **ZIP-Archiv** zeigen, das `WordPressWimpStack.ps1` enthält. Führen Sie diesen Schritt **vor** dem `az vm extension set`-Aufruf aus — sonst zeigt `configuration.url` in Schritt 4 ins Leere und die Erweiterung schlägt fehl.
 
 ```bash
 # Container einmalig anlegen, falls er noch nicht existiert:
@@ -66,11 +66,11 @@ az storage blob upload \
   --file WordPressWimpStack.ps1.zip
 ```
 
-Anonymer Lesezugriff auf den Container (`--public-access blob`) ist der einfachste Weg für dieses Lab; alternativ ein SAS-Token an die `ModulesUrl` anhängen, wenn der Storage Account keinen anonymen Zugriff erlaubt.
+Anonymer Lesezugriff auf den Container (`--public-access blob`) ist der einfachste Weg für dieses Lab; alternativ ein SAS-Token an `configuration.url` anhängen, wenn der Storage Account keinen anonymen Zugriff erlaubt.
 
 ## Schritt 4: DSC-Erweiterung auf die VM anwenden
 
-Tragen Sie hier Ihre beiden Kennwörter aus Schritt 2 ein — ersetzen Sie **beide** `<CHANGE_ME>`-Platzhalter durch selbst gewählte Werte, nicht durch den Platzhaltertext selbst:
+**Korrektur (nach Testlauf 31.08.2026):** Die ältere `ModulesUrl`/`ConfigurationFunction`/`Items`-Schreibweise, die hier zuvor stand, führt mit aktuellen Extension-Versionen (getestet: 2.83.5) zu `The DSC Extension failed to execute: Mandatory parameter MySqlRootPassword is missing` — obwohl der Wert korrekt in `Items` steht. Grund: `Items` allein deklariert der Erweiterung nicht, dass es sich um ein Argument der Konfigurationsfunktion handelt; dafür wäre zusätzlich ein `Properties`-Array in `--settings` nötig gewesen (ältere Schema-Generation), das hier fehlte. Die aktuelle, von Microsoft dokumentierte Schreibweise verwendet stattdessen `configuration` (verschachtelt: `url`/`script`/`function`) und ein flaches `configurationArguments`-Dictionary, direkt nach Parametername benannt — kein separates `Properties`/`Items`-Paar mehr nötig:
 
 ```bash
 az vm extension set \
@@ -80,18 +80,21 @@ az vm extension set \
   --publisher Microsoft.Powershell \
   --version 2.83 \
   --settings '{
-      "ModulesUrl": "https://<STORAGE-ACCOUNT>.blob.core.windows.net/dsc/WordPressWimpStack.ps1.zip",
-      "ConfigurationFunction": "WordPressWimpStack.ps1\\WordPressWimpStack"
+      "configuration": {
+        "url": "https://<STORAGE-ACCOUNT>.blob.core.windows.net/dsc/WordPressWimpStack.ps1.zip",
+        "script": "WordPressWimpStack.ps1",
+        "function": "WordPressWimpStack"
+      }
     }' \
   --protected-settings '{
-      "Items": {
+      "configurationArguments": {
         "MySqlRootPassword": "<CHANGE_ME>",
         "WpDbPassword": "<CHANGE_ME>"
       }
     }'
 ```
 
-`--protected-settings` verschlüsselt die übergebenen Parameter innerhalb der Erweiterung (im Gegensatz zu `--settings`, die im Klartext im Ressourcen-Manifest sichtbar wären) — deshalb müssen die beiden Kennwörter dort und nicht in `--settings` stehen. `ModulesUrl` muss exakt auf das in Schritt 3 hochgeladene ZIP zeigen.
+Tragen Sie hier Ihre beiden Kennwörter aus Schritt 2 ein — ersetzen Sie **beide** `<CHANGE_ME>`-Platzhalter durch selbst gewählte Werte, nicht durch den Platzhaltertext selbst. `--protected-settings` verschlüsselt die übergebenen Parameter (im Gegensatz zu `--settings`, die im Klartext im Ressourcen-Manifest sichtbar wären) — deshalb müssen die beiden Kennwörter unter `protectedSettings.configurationArguments` stehen, nicht unter `settings.configurationArguments`. `configuration.url` muss exakt auf das in Schritt 3 hochgeladene ZIP zeigen. Quelle: [Azure Desired State Configuration Extension Handler](https://learn.microsoft.com/en-us/azure/virtual-machines/extensions/dsc-windows).
 
 ## Schritt 5: Ausführung prüfen
 
@@ -111,8 +114,8 @@ Bei `"code": "ProvisioningState/succeeded"` ist die Konfiguration angewendet. Da
 ## Troubleshooting
 
 - **Erweiterung meldet `ProvisioningState/failed`:** Detail-Logs liegen auf der VM unter `C:\WindowsAzure\Logs\Plugins\Microsoft.Powershell.DSC\<Version>\` — insbesondere `DscExtensionHandler.log`. Per RDP verbinden (Port 3389, aus Schritt 1 geöffnet) und dort nachsehen.
-- **PHP-Download schlägt fehl:** die im Skript referenzierte PHP-Version (8.3.11) kann durch eine neuere ersetzt worden sein — aktuelle Download-URL immer gegen https://windows.php.net/downloads/releases/ prüfen, bevor das Lab durchgeführt wird (Windows-PHP-Releases werden regelmäßiger archiviert als Linux-Distributionspakete).
-- **MySQL-Installer-CLI-Aufruf schlägt fehl:** die genaue Kommandozeilensyntax von `MySQLInstallerConsole.exe` ändert sich gelegentlich zwischen Installer-Versionen — vor dem Kurstermin gegen die tatsächlich referenzierte Version (8.0.39) testen, siehe Tom's Smoke-Test-Durchlauf.
+- **PHP- oder MySQL-Download schlägt mit `The remote server returned an error: (404) Not Found` fehl (DSC-Fehler `MSFT_ScriptResource ... Set-TargetResource`, oft mit einer Oracle-„Technical Difficulties"-Fehlerseite als Body bei MySQL):** Ursache war ein Testfall am 31.08.2026 — `dev.mysql.com/get/Downloads/MySQLInstaller/...` und `windows.php.net/downloads/releases/...` (ohne `/archives/`) halten nur die **jeweils aktuelle(n)** Version(en) vor; sobald ein neuer Patch-Release erscheint, verschwindet die im Skript fest verdrahtete alte Versions-URL ersatzlos. **Behoben:** `WordPressWimpStack.ps1` zeigt jetzt auf die dauerhaften Archiv-Pfade (`downloads.mysql.com/archives/get/p/25/file/...` bzw. `windows.php.net/downloads/releases/archives/...`), die die exakt getestete Version (MySQL 8.0.39, PHP 8.3.11) unbefristet vorhalten. Falls es trotzdem wieder 404 gibt: Version im Skript (`$msiUrl`/`$phpUrl`) gegen die tatsächlich noch im Archiv vorhandene Version prüfen (MySQL: https://downloads.mysql.com/archives/installer/, PHP: https://windows.php.net/downloads/releases/archives/) und ggf. auf eine dort vorhandene Version aktualisieren — nicht auf die „aktuelle" Nicht-Archiv-URL, die regelmäßig erneut bricht.
+- **MySQL-Installer-CLI-Aufruf schlägt fehl (anderer Fehler als 404):** die genaue Kommandozeilensyntax von `MySQLInstallerConsole.exe` ändert sich gelegentlich zwischen Installer-Versionen — vor dem Kurstermin gegen die tatsächlich referenzierte Version (8.0.39) testen, siehe Tom's Smoke-Test-Durchlauf.
 - **appcmd.exe-Aufrufe schlagen mit "already exists" fehl:** passiert bei einem zweiten `Start-DscConfiguration`-Lauf auf derselben VM, da `TestScript` für `InstallPhp` nur die Datei prüft, nicht die IIS-Konfiguration — für Wiederholungsläufe im Kurs ggf. mit einer frischen VM arbeiten.
 
 ## Einordnung für den Vortrag

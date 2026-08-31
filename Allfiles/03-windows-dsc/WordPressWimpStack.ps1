@@ -54,7 +54,7 @@ Configuration WordPressWimpStack {
             }
 
             SetScript = {
-                $phpUrl = "https://windows.php.net/downloads/releases/php-8.3.11-nts-Win32-vs16-x64.zip"
+                $phpUrl = "https://windows.php.net/downloads/releases/archives/php-8.3.11-nts-Win32-vs16-x64.zip"  # archives-Pfad: aktuelle /releases/-URL wird bei jedem neuen Patch-Release entfernt, /archives/ bleibt dauerhaft bestehen
                 $zipPath = "C:\Windows\Temp\php.zip"
                 Invoke-WebRequest -Uri $phpUrl -OutFile $zipPath -UseBasicParsing
                 Expand-Archive -Path $zipPath -DestinationPath "C:\PHP" -Force
@@ -84,7 +84,7 @@ Configuration WordPressWimpStack {
         # -- Schritt 3: MySQL Community Server silent installieren --
         Script InstallMySql {
             SetScript = {
-                $msiUrl = "https://dev.mysql.com/get/Downloads/MySQLInstaller/mysql-installer-community-8.0.39.0.msi"
+                $msiUrl = "https://downloads.mysql.com/archives/get/p/25/file/mysql-installer-community-8.0.39.0.msi"  # archives-Pfad: dev.mysql.com/get/... haelt nur die jeweils aktuelle(n) Version(en) vor, aeltere Patch-Versionen werden dort entfernt
                 $msiPath = "C:\Windows\Temp\mysql-installer.msi"
                 Invoke-WebRequest -Uri $msiUrl -OutFile $msiPath -UseBasicParsing
                 Start-Process msiexec.exe -ArgumentList "/i `"$msiPath`" /quiet /norestart" -Wait
