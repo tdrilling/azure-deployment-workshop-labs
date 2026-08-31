@@ -84,7 +84,16 @@ Configuration WordPressWimpStack {
         # -- Schritt 3: MySQL Community Server silent installieren --
         Script InstallMySql {
             SetScript = {
-                $msiUrl = "https://downloads.mysql.com/archives/get/p/25/file/mysql-installer-community-8.0.39.0.msi"  # archives-Pfad: dev.mysql.com/get/... haelt nur die jeweils aktuelle(n) Version(en) vor, aeltere Patch-Versionen werden dort entfernt
+                $msiUrl = "https://ctdeployartidacts.blob.core.windows.net/dsc/mysql-installer-community-8.0.39.0.msi"
+                # ACHTUNG (31.08.2026): dev.mysql.com UND der archives.mysql.com-Downloadpfad
+                # blocken automatisierte Downloads von der Lab-VM aus mit 403 Forbidden (Oracle-
+                # Bot-Schutz), auch mit Browser-User-Agent -- ist kein zuverlaessiger Downloadpfad
+                # fuer diesen Anwendungsfall. Loesung: Installer EINMALIG per eigenem Browser von
+                # https://downloads.mysql.com/archives/installer/ (Version 8.0.39.0, community/offline)
+                # herunterladen und in den eigenen Blob-Container hochladen:
+                #   az storage blob upload --account-name ctdeployartidacts --container-name dsc \
+                #     --name mysql-installer-community-8.0.39.0.msi --file mysql-installer-community-8.0.39.0.msi
+                # Container-Name/Storage-Account oben ggf. an den tatsaechlich verwendeten anpassen.
                 $msiPath = "C:\Windows\Temp\mysql-installer.msi"
                 Invoke-WebRequest -Uri $msiUrl -OutFile $msiPath -UseBasicParsing
                 Start-Process msiexec.exe -ArgumentList "/i `"$msiPath`" /quiet /norestart" -Wait
