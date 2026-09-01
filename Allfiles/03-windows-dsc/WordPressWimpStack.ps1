@@ -181,7 +181,14 @@ FLUSH PRIVILEGES;
                     throw "appcmd defaultDocument-Eintrag ist mit Exitcode $LASTEXITCODE fehlgeschlagen"
                 }
             }
-            TestScript = { Test-Path "C:\inetpub\wwwroot\wp-config.php" }
+            # Bewusst immer neu ausfuehren (wie bei CreateWpDatabase) statt nur
+            # Test-Path zu pruefen: Sobald wp-config.php einmal existiert, wuerde
+            # Test-Path dauerhaft True liefern und DSC wuerde SetScript nie wieder
+            # aufrufen -- auch nicht nach Aenderungen an diesem Skript (z.B. dem
+            # appcmd-Fix oder der Salt-Generierung weiter oben). Alle Aktionen im
+            # SetScript oben sind idempotent (Force-Copy, Set-Content), ein
+            # wiederholter Durchlauf ist also unkritisch:
+            TestScript = { $false }
             GetScript = { @{ Result = (Test-Path "C:\inetpub\wwwroot\wp-config.php") } }
         }
     }
