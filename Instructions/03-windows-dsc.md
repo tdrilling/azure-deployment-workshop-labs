@@ -87,9 +87,20 @@ Anonymer Lesezugriff auf den Container (`--public-access blob`) ist der einfachs
 `dev.mysql.com` und auch der MySQL-Archiv-Downloadpfad blocken automatisierte Downloads von Azure-Rechenzentrums-IP-Adressen mit `403 Forbidden` (Oracle Bot-/Scraper-Schutz), auch mit gesetztem Browser-User-Agent. Ein Skript kann die Datei deshalb nicht selbst besorgen — Browser-Downloads sind vom Schutz nicht betroffen:
 
 1. Version 8.0.39.0 (community, **offline**-Installer, nicht die kleine "web"-Variante) einmalig per eigenem Browser laden: https://downloads.mysql.com/archives/installer/ — landet im lokalen Download-Ordner Ihres Rechners, ca. 400+ MB.
-2. Von dort direkt in den Blob-Container hochladen — **nicht** über den Datei-Upload-Knopf der Azure Cloud Shell (der ist für Dateien dieser Größe zu klein bemessen und bricht ab). Zwei Wege, die das umgehen, weil sie direkt vom lokalen Rechner zum Storage Account übertragen, ohne über Cloud Shell zu laufen:
-   - **Azure Storage Explorer** (Desktop-App, kein CLI-Setup nötig): mit dem Azure-Konto anmelden, zum Storage Account und Container `dsc` navigieren, Datei per Drag & Drop hochladen — verkraftet große Dateien problemlos.
-   - **Lokal installierte Azure CLI:** direkt im Download-Ordner ausführen:
+2. Azure CLI lokal installieren (auf dem Rechner, auf dem die Datei liegt, nicht in der Cloud Shell):
+
+```powershell
+winget install -e --id Microsoft.AzureCLI
+```
+
+macOS: `brew install azure-cli`, Linux: siehe [Installationsanleitung](https://learn.microsoft.com/de-de/cli/azure/install-azure-cli). Dieser Schritt ist bewusst Teil des Labs, nicht nur eine Notlösung: Der Datei-Upload-Knopf der Azure Cloud Shell ist für eine Datei dieser Größe zu klein bemessen und bricht ab, und der MySQL-Installer lässt sich aus denselben Gründen wie eben nicht direkt aus dem Internet herunterladen (Schritt davor) — eine lokale Azure-CLI-Installation ist die einzige Variante, die beides umgeht, weil sie direkt und ohne Zwischenstation vom lokalen Rechner zum Storage Account überträgt. Nebenbei ist es ohnehin nützlich, die CLI nicht nur aus der Cloud Shell zu kennen, sondern auch lokal einsetzen zu können.
+3. Einmalig anmelden (öffnet den Browser zur Azure-Anmeldung — eine separate Sitzung von der Cloud Shell, auch wenn Sie dort schon angemeldet sind):
+
+```bash
+az login
+```
+
+4. Hochladen, im Download-Ordner:
 
 ```bash
 az storage blob upload \
@@ -98,6 +109,8 @@ az storage blob upload \
   --name mysql-installer-community-8.0.39.0.msi \
   --file mysql-installer-community-8.0.39.0.msi
 ```
+
+**Keine Administratorrechte für eine lokale Installation?** Alternative ohne CLI-Setup: [Azure Storage Explorer](https://azure.microsoft.com/products/storage/storage-explorer) (Desktop-App), mit dem Azure-Konto anmelden, zum Storage Account und Container `dsc` navigieren, Datei per Drag & Drop hochladen.
 
 `$msiUrl` in `WordPressWimpStack.ps1` zeigt bereits auf `https://<STORAGE-ACCOUNT>.blob.core.windows.net/dsc/mysql-installer-community-8.0.39.0.msi` — Storage-Account-Namen im Skript ggf. an den tatsächlich verwendeten anpassen. Dieser Schritt ist **einmalig pro Storage Account**, nicht pro Kurstermin — nur nach dem Anlegen eines neuen/anderen Storage Accounts wiederholen.
 
