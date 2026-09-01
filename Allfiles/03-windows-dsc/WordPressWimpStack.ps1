@@ -148,6 +148,14 @@ FLUSH PRIVILEGES;
                 $config = $config -replace "username_here", $using:WpDbUser
                 $config = $config -replace "password_here", $using:WpDbPassword
                 $config | Set-Content "C:\inetpub\wwwroot\wp-config.php"
+
+                # index.php als Default-Dokument eintragen -- IIS kennt es ohne diesen
+                # Schritt nicht (Standardliste: Default.htm, index.htm, ...), ein
+                # Aufruf von "/" ohne Dateiname schlaegt sonst mit 403 fehl, obwohl
+                # WordPress korrekt deployt ist:
+                $appcmd = "$env:windir\system32\inetsrv\appcmd.exe"
+                & $appcmd set config -section:system.webServer/defaultDocument `
+                    "/+[value='index.php']" /commit:apphost
             }
             TestScript = { Test-Path "C:\inetpub\wwwroot\wp-config.php" }
             GetScript = { @{ Result = (Test-Path "C:\inetpub\wwwroot\wp-config.php") } }

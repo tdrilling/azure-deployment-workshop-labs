@@ -147,6 +147,7 @@ az vm extension show \
   --resource-group rg-wimp-lab-<IHR-SUFFIX> \
   --vm-name vm-wimp-01 \
   --name DSC \
+  --instance-view \
   --query instanceView.statuses
 ```
 
