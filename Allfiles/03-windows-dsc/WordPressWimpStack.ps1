@@ -102,8 +102,14 @@ Configuration WordPressWimpStack {
                 # Server-Instanz mit Root-Kennwort initialisieren (Community-
                 # Installer-CLI, non-interaktiv):
                 $mysqlConfigCmd = "C:\Program Files (x86)\MySQL\MySQL Installer for Windows\MySQLInstallerConsole.exe"  # MySQL Installer selbst ist 32-Bit, daher (x86) -- MySQL Server (unten) bleibt 64-Bit unter Program Files
-                & $mysqlConfigCmd community install server `
-                    --version=8.0.45 --root_password=$using:MySqlRootPassword --silent
+                # MySQLInstallerConsole.exe-Syntax: Produkt-Spezifikation als ein
+                # zusammenhaengendes, mit Doppelpunkt/Semikolon getrenntes Argument
+                # nach --install (nicht "community install ... --version=..."):
+                $rootPwd = $using:MySqlRootPassword
+                & $mysqlConfigCmd --install "server;8.0.45:x64:*:type=config;root_passwd=$rootPwd" --silent
+                if ($LASTEXITCODE -ne 0) {
+                    throw "MySQLInstallerConsole.exe --install ist mit Exitcode $LASTEXITCODE fehlgeschlagen"
+                }
             }
             TestScript = {
                 Test-Path "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"
