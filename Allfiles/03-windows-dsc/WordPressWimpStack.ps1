@@ -155,9 +155,12 @@ FLUSH PRIVILEGES;
                 # WordPress korrekt deployt ist. Collection heisst "files", nicht die
                 # Sektion selbst -- ohne "files."-Praefix wird stillschweigend nichts
                 # eingetragen (kein Fehler, aber auch keine Wirkung):
+                # Als eine einzige Zeile (kein Backtick-Zeilenumbruch) -- bei einem
+                # frueheren Versuch mit Zeilenumbruch wurde der Befehl beim DSC-/MOF-
+                # Kompilieren offenbar anders zerlegt und blieb wirkungslos, obwohl er
+                # manuell in einer interaktiven Shell fehlerfrei lief:
                 $appcmd = "$env:windir\system32\inetsrv\appcmd.exe"
-                & $appcmd set config "Default Web Site" -section:system.webServer/defaultDocument `
-                    /enabled:true "/+files.[value='index.php']" /commit:apphost
+                & $appcmd set config "Default Web Site" -section:system.webServer/defaultDocument /enabled:true "/+files.[value='index.php']" /commit:apphost
                 if ($LASTEXITCODE -ne 0) {
                     throw "appcmd defaultDocument-Eintrag ist mit Exitcode $LASTEXITCODE fehlgeschlagen"
                 }
