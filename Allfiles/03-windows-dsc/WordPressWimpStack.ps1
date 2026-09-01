@@ -152,10 +152,15 @@ FLUSH PRIVILEGES;
                 # index.php als Default-Dokument eintragen -- IIS kennt es ohne diesen
                 # Schritt nicht (Standardliste: Default.htm, index.htm, ...), ein
                 # Aufruf von "/" ohne Dateiname schlaegt sonst mit 403 fehl, obwohl
-                # WordPress korrekt deployt ist:
+                # WordPress korrekt deployt ist. Collection heisst "files", nicht die
+                # Sektion selbst -- ohne "files."-Praefix wird stillschweigend nichts
+                # eingetragen (kein Fehler, aber auch keine Wirkung):
                 $appcmd = "$env:windir\system32\inetsrv\appcmd.exe"
-                & $appcmd set config -section:system.webServer/defaultDocument `
-                    "/+[value='index.php']" /commit:apphost
+                & $appcmd set config "Default Web Site" -section:system.webServer/defaultDocument `
+                    /enabled:true "/+files.[value='index.php']" /commit:apphost
+                if ($LASTEXITCODE -ne 0) {
+                    throw "appcmd defaultDocument-Eintrag ist mit Exitcode $LASTEXITCODE fehlgeschlagen"
+                }
             }
             TestScript = { Test-Path "C:\inetpub\wwwroot\wp-config.php" }
             GetScript = { @{ Result = (Test-Path "C:\inetpub\wwwroot\wp-config.php") } }
