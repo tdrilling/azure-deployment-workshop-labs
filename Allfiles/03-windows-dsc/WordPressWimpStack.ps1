@@ -81,47 +81,46 @@ Configuration WordPressWimpStack {
             GetScript = { @{ Result = (Test-Path "C:\PHP\php-cgi.exe") } }
         }
 
-        # -- Schritt 3: MySQL Community Server silent installieren --
+        # -- Schritt 3: MariaDB Server silent installieren --
+        # Wechsel von MySQL auf MariaDB (Drop-in-kompatibel: gleicher mysql.exe-Client,
+        # gleiches Wire-Protokoll, mit PHP mysqli unveraendert kompatibel), weil sich
+        # sowohl der direkte MySQL-Download (Oracle-Bot-Schutz, 403 Forbidden von
+        # Azure-Rechenzentrums-IPs) als auch MySQLInstallerConsole.exe (verlangt bei der
+        # "server"-Paketspezifikation My-Oracle-Support-Zugangsdaten -- ein seit Jahren
+        # bekanntes, in MySQL-Foren dokumentiertes Problem) als nicht zuverlaessig
+        # automatisierbar erwiesen haben. MariaDBs MSI installiert direkt per msiexec,
+        # ohne ein Installer-Bootstrap-/Lizenzsystem dazwischen.
         Script InstallMySql {
             SetScript = {
-                $msiUrl = "https://ctwplab3sa.blob.core.windows.net/dsc/mysql-installer-community-8.0.45.0.msi"
-                # ACHTUNG: dev.mysql.com UND der archives.mysql.com-Downloadpfad blocken
-                # automatisierte Downloads von Azure-Rechenzentrums-IPs mit 403 Forbidden
-                # (Oracle-Bot-Schutz), auch mit Browser-User-Agent -- kein zuverlaessiger
-                # Downloadpfad fuer diesen Anwendungsfall. Loesung: Installer EINMALIG per
-                # eigenem Browser von
-                # https://downloads.mysql.com/archives/installer/ (Version 8.0.45.0, community/offline)
-                # herunterladen und in den eigenen Blob-Container hochladen:
+                $msiUrl = "https://ctwplab3sa.blob.core.windows.net/dsc/mariadb-server.msi"
+                # Installer EINMALIG per eigenem Browser von https://mariadb.org/download/
+                # laden (Windows, x86_64, MSI Package, aktuelle stabile/LTS-Version) und
+                # unter EXAKT diesem Namen in den eigenen Blob-Container hochladen:
                 #   az storage blob upload --account-name ctwplab3sa --container-name dsc \
-                #     --name mysql-installer-community-8.0.45.0.msi --file mysql-installer-community-8.0.45.0.msi
-                # Container-Name/Storage-Account oben ggf. an den tatsaechlich verwendeten anpassen.
-                $msiPath = "C:\Windows\Temp\mysql-installer.msi"
+                #     --name mariadb-server.msi --file <heruntergeladene-Datei>.msi
+                $msiPath = "C:\Windows\Temp\mariadb-server.msi"
                 Invoke-WebRequest -Uri $msiUrl -OutFile $msiPath -UseBasicParsing
-                Start-Process msiexec.exe -ArgumentList "/i `"$msiPath`" /quiet /norestart" -Wait
 
-                # Server-Instanz mit Root-Kennwort initialisieren (Community-
-                # Installer-CLI, non-interaktiv):
-                $mysqlConfigCmd = "C:\Program Files (x86)\MySQL\MySQL Installer for Windows\MySQLInstallerConsole.exe"  # MySQL Installer selbst ist 32-Bit, daher (x86) -- MySQL Server (unten) bleibt 64-Bit unter Program Files
-                # MySQLInstallerConsole.exe-Syntax: Produkt-Spezifikation als ein
-                # zusammenhaengendes, mit Doppelpunkt/Semikolon getrenntes Argument
-                # nach --install (nicht "community install ... --version=..."):
                 $rootPwd = $using:MySqlRootPassword
-                & $mysqlConfigCmd --install "server;8.0.45:x64:*:type=config;root_passwd=$rootPwd" --silent
-                if ($LASTEXITCODE -ne 0) {
-                    throw "MySQLInstallerConsole.exe --install ist mit Exitcode $LASTEXITCODE fehlgeschlagen"
+                # INSTALLDIR fest vorgegeben (statt versionsabhaengigem Standardpfad wie
+                # "MariaDB 11.4"), damit TestScript/GetScript/CreateWpDatabase unten einen
+                # von der genauen Version unabhaengigen, stabilen Pfad verwenden koennen:
+                $proc = Start-Process msiexec.exe -ArgumentList "/i `"$msiPath`" INSTALLDIR=`"C:\MariaDB`" SERVICENAME=MariaDB PASSWORD=`"$rootPwd`" PORT=3306 /qn /norestart" -Wait -PassThru
+                if ($proc.ExitCode -ne 0) {
+                    throw "MariaDB-MSI-Installation ist mit Exitcode $($proc.ExitCode) fehlgeschlagen"
                 }
             }
             TestScript = {
-                Test-Path "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"
+                Test-Path "C:\MariaDB\bin\mysql.exe"
             }
-            GetScript = { @{ Result = (Test-Path "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe") } }
+            GetScript = { @{ Result = (Test-Path "C:\MariaDB\bin\mysql.exe") } }
         }
 
         # -- Schritt 4: Datenbank + Benutzer fuer WordPress anlegen --
         Script CreateWpDatabase {
             DependsOn = "[Script]InstallMySql"
             SetScript = {
-                $mysqlExe = "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"
+                $mysqlExe = "C:\MariaDB\bin\mysql.exe"
                 $sql = @"
 CREATE DATABASE IF NOT EXISTS $using:WpDbName CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 CREATE USER IF NOT EXISTS '$using:WpDbUser'@'localhost' IDENTIFIED BY '$using:WpDbPassword';
