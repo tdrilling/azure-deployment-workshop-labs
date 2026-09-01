@@ -84,16 +84,16 @@ Configuration WordPressWimpStack {
         # -- Schritt 3: MySQL Community Server silent installieren --
         Script InstallMySql {
             SetScript = {
-                $msiUrl = "https://ctdeployartidacts.blob.core.windows.net/dsc/mysql-installer-community-8.0.39.0.msi"
+                $msiUrl = "https://ctdeployartidacts.blob.core.windows.net/dsc/mysql-installer-community-8.0.45.0.msi"
                 # ACHTUNG: dev.mysql.com UND der archives.mysql.com-Downloadpfad blocken
                 # automatisierte Downloads von Azure-Rechenzentrums-IPs mit 403 Forbidden
                 # (Oracle-Bot-Schutz), auch mit Browser-User-Agent -- kein zuverlaessiger
                 # Downloadpfad fuer diesen Anwendungsfall. Loesung: Installer EINMALIG per
                 # eigenem Browser von
-                # https://downloads.mysql.com/archives/installer/ (Version 8.0.39.0, community/offline)
+                # https://downloads.mysql.com/archives/installer/ (Version 8.0.45.0, community/offline)
                 # herunterladen und in den eigenen Blob-Container hochladen:
                 #   az storage blob upload --account-name ctdeployartidacts --container-name dsc \
-                #     --name mysql-installer-community-8.0.39.0.msi --file mysql-installer-community-8.0.39.0.msi
+                #     --name mysql-installer-community-8.0.45.0.msi --file mysql-installer-community-8.0.45.0.msi
                 # Container-Name/Storage-Account oben ggf. an den tatsaechlich verwendeten anpassen.
                 $msiPath = "C:\Windows\Temp\mysql-installer.msi"
                 Invoke-WebRequest -Uri $msiUrl -OutFile $msiPath -UseBasicParsing
@@ -103,7 +103,7 @@ Configuration WordPressWimpStack {
                 # Installer-CLI, non-interaktiv):
                 $mysqlConfigCmd = "C:\Program Files\MySQL\MySQL Installer for Windows\MySQLInstallerConsole.exe"
                 & $mysqlConfigCmd community install server `
-                    --version=8.0.39 --root_password=$using:MySqlRootPassword --silent
+                    --version=8.0.45 --root_password=$using:MySqlRootPassword --silent
             }
             TestScript = {
                 Test-Path "C:\Program Files\MySQL\MySQL Server 8.0\bin\mysql.exe"

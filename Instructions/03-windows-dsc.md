@@ -86,7 +86,7 @@ Anonymer Lesezugriff auf den Container (`--public-access blob`) ist der einfachs
 
 `dev.mysql.com` und auch der MySQL-Archiv-Downloadpfad blocken automatisierte Downloads von Azure-Rechenzentrums-IP-Adressen mit `403 Forbidden` (Oracle Bot-/Scraper-Schutz), auch mit gesetztem Browser-User-Agent. Ein Skript kann die Datei deshalb nicht selbst besorgen — Browser-Downloads sind vom Schutz nicht betroffen:
 
-1. Version 8.0.39.0 (community, **offline**-Installer, nicht die kleine "web"-Variante) einmalig per eigenem Browser laden: https://downloads.mysql.com/archives/installer/ — landet im lokalen Download-Ordner Ihres Rechners, ca. 400+ MB.
+1. Version 8.0.45.0 (community, **offline**-Installer, nicht die kleine "web"-Variante) einmalig per eigenem Browser laden: https://downloads.mysql.com/archives/installer/ — landet im lokalen Download-Ordner Ihres Rechners, ca. 400+ MB.
 2. Azure CLI lokal installieren (auf dem Rechner, auf dem die Datei liegt, nicht in der Cloud Shell):
 
 ```powershell
@@ -100,19 +100,15 @@ macOS: `brew install azure-cli`, Linux: siehe [Installationsanleitung](https://l
 az login
 ```
 
-4. Hochladen, im Download-Ordner:
+4. Hochladen, im Download-Ordner. **Achtung bei PowerShell (Standard-Terminal unter Windows):** anders als in der Cloud Shell (bash) ist dort `\` am Zeilenende **kein** Fortsetzungszeichen — PowerShell interpretiert jede Zeile einzeln und meldet `Missing expression after unary operator '--'`. Befehl deshalb entweder als eine einzige Zeile einfügen, oder `\` durch das PowerShell-Fortsetzungszeichen `` ` `` (Backtick) ersetzen:
 
-```bash
-az storage blob upload \
-  --account-name <STORAGE-ACCOUNT> \
-  --container-name dsc \
-  --name mysql-installer-community-8.0.39.0.msi \
-  --file mysql-installer-community-8.0.39.0.msi
+```powershell
+az storage blob upload --account-name <STORAGE-ACCOUNT> --container-name dsc --name mysql-installer-community-8.0.45.0.msi --file mysql-installer-community-8.0.45.0.msi
 ```
 
 **Keine Administratorrechte für eine lokale Installation?** Alternative ohne CLI-Setup: [Azure Storage Explorer](https://azure.microsoft.com/products/storage/storage-explorer) (Desktop-App), mit dem Azure-Konto anmelden, zum Storage Account und Container `dsc` navigieren, Datei per Drag & Drop hochladen.
 
-`$msiUrl` in `WordPressWimpStack.ps1` zeigt bereits auf `https://<STORAGE-ACCOUNT>.blob.core.windows.net/dsc/mysql-installer-community-8.0.39.0.msi` — Storage-Account-Namen im Skript ggf. an den tatsächlich verwendeten anpassen. Dieser Schritt ist **einmalig pro Storage Account**, nicht pro Kurstermin — nur nach dem Anlegen eines neuen/anderen Storage Accounts wiederholen.
+`$msiUrl` in `WordPressWimpStack.ps1` zeigt bereits auf `https://<STORAGE-ACCOUNT>.blob.core.windows.net/dsc/mysql-installer-community-8.0.45.0.msi` — Storage-Account-Namen im Skript ggf. an den tatsächlich verwendeten anpassen. Dieser Schritt ist **einmalig pro Storage Account**, nicht pro Kurstermin — nur nach dem Anlegen eines neuen/anderen Storage Accounts wiederholen.
 
 ## Schritt 4: DSC-Erweiterung auf die VM anwenden
 
@@ -162,7 +158,7 @@ Bei `"code": "ProvisioningState/succeeded"` ist die Konfiguration angewendet. Da
 - **Erweiterung meldet `ProvisioningState/failed`:** Detail-Logs liegen auf der VM unter `C:\WindowsAzure\Logs\Plugins\Microsoft.Powershell.DSC\<Version>\` — insbesondere `DscExtensionHandler.log`. Per RDP verbinden (Port 3389, aus Schritt 1 geöffnet) und dort nachsehen.
 - **PHP-Download schlägt mit `404 Not Found` fehl:** `windows.php.net/downloads/releases/` (ohne `/archives/`) hält nur die jeweils aktuelle(n) Version(en) vor. `$phpUrl` in `WordPressWimpStack.ps1` zeigt deshalb auf den dauerhaften Archiv-Pfad `windows.php.net/downloads/releases/archives/...`.
 - **MySQL-Download schlägt mit `403 Forbidden` fehl:** Schritt 3b wurde übersprungen, oder der Storage-Account-Name im Skript stimmt nicht mit dem tatsächlich verwendeten überein — siehe Schritt 3b.
-- **MySQL-Installer-CLI-Aufruf schlägt fehl (anderer Fehler als 403/404):** die genaue Kommandozeilensyntax von `MySQLInstallerConsole.exe` ändert sich gelegentlich zwischen Installer-Versionen — gegen die tatsächlich referenzierte Version (8.0.39) prüfen.
+- **MySQL-Installer-CLI-Aufruf schlägt fehl (anderer Fehler als 403/404):** die genaue Kommandozeilensyntax von `MySQLInstallerConsole.exe` ändert sich gelegentlich zwischen Installer-Versionen — gegen die tatsächlich referenzierte Version (8.0.45) prüfen.
 - **appcmd.exe-Aufrufe schlagen mit "already exists" fehl:** passiert bei einem zweiten `Start-DscConfiguration`-Lauf auf derselben VM, da `TestScript` für `InstallPhp` nur die Datei prüft, nicht die IIS-Konfiguration — für Wiederholungsläufe im Kurs ggf. mit einer frischen VM arbeiten.
 
 ## Einordnung für den Vortrag
