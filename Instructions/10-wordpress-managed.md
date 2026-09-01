@@ -4,6 +4,8 @@
 
 **Dauer:** ca. 25–30 Minuten (kurz, bewusst — dieses Lab demonstriert Abstraktion, es übt sie nicht ein).
 
+**Technologie-Stack:** Azure App Service (Linux mit NGINX, nicht Apache) • Azure Database for MySQL Flexible Server — komplett von Azure über das Marketplace-Angebot provisioniert.
+
 ---
 
 ## Bridge: Warum jetzt, und was ist tatsächlich neu?

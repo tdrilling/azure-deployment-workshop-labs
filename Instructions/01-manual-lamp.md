@@ -4,6 +4,8 @@
 
 **Dauer:** ca. 45-60 Minuten. **Voraussetzung:** SSH-Schlüsselpaar (siehe Schritt 0).
 
+**Technologie-Stack:** Ubuntu Server (Linux) • Apache • PHP • MySQL — alles manuell auf einer VM installiert.
+
 ---
 
 **Namenskonvention für dieses und alle folgenden Labs:** Resource-Group-Namen enthalten in den Anleitungen den Platzhalter `<IHR-SUFFIX>` — ersetzen Sie ihn überall durch dasselbe, für Sie eindeutige Kürzel (Initialen + Datum funktionieren zuverlässig, z. B. `tw0822`). Das hält Ihre Ressourcen von denen anderer Teilnehmer getrennt, falls mehrere Personen dieselbe Azure-Subscription teilen — schadet aber nicht, wenn Sie allein in einer eigenen Subscription arbeiten. Ab Lab 6 verwenden Sie denselben `<IHR-SUFFIX>`-Wert zusätzlich für global eindeutige Ressourcennamen (Web-Apps, MySQL-Server, Storage Accounts).

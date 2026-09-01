@@ -4,6 +4,8 @@
 
 **Dauer:** ca. 45–60 Minuten.
 
+**Technologie-Stack:** Azure App Service (Linux, Apache/PHP-Runtime, PaaS) • separater Azure Database for MySQL Flexible Server — keine eigene VM.
+
 ---
 
 ## Bridge: Warum PaaS an dieser Stelle, und was ist neu gegenüber Block 1/2?

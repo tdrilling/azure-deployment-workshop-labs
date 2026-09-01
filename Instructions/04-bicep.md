@@ -4,6 +4,8 @@
 
 **Dauer:** ca. 30-40 Minuten.
 
+**Technologie-Stack:** Ubuntu Server (Linux) • Apache • PHP • MySQL — alles auf einer VM (Netzwerk + VM per Bicep, Software per Cloud-Init aus Lab 2; gleiche Zielarchitektur wie Lab 1/2).
+
 ---
 
 ## Was ist neu gegenüber Lab 1/2?

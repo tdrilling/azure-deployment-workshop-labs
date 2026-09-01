@@ -4,6 +4,8 @@
 
 **Dauer:** ca. 30-40 Minuten.
 
+**Technologie-Stack:** Ubuntu Server (Linux) • Apache • PHP • MySQL — alles auf einer VM (identisch zu Lab 4, nur mit Terraform statt Bicep deployt).
+
 ---
 
 ## Was ist neu gegenüber Lab 4 (Bicep)?

@@ -4,6 +4,8 @@
 
 **Dauer:** ca. 30-35 Minuten.
 
+**Technologie-Stack:** Eigenes Docker-Image (PHP 8.3 + Apache + WordPress) • Azure Container Instances • separater Azure Database for MySQL Flexible Server.
+
 ---
 
 ## Warum Container an dieser Stelle?

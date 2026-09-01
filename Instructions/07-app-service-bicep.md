@@ -4,6 +4,8 @@
 
 **Dauer:** ca. 25-30 Minuten.
 
+**Technologie-Stack:** Azure App Service (Linux, Apache/PHP-Runtime, PaaS) • separater Azure Database for MySQL Flexible Server — keine eigene VM (identische Zielarchitektur wie Lab 6, deklarativ per Bicep).
+
 ---
 
 ## Was ist neu gegenüber Lab 4 (Block 2)?

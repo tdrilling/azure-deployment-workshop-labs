@@ -6,6 +6,8 @@
 
 **Voraussetzung:** Lab 7 ist bereits deployt — Web-App samt `staging`-Slot existiert, MySQL Flexible Server samt Datenbank ebenfalls (aus Lab 6/7). Dieses Lab legt keine neue Infrastruktur an und fasst die Datenbank nicht an; es deployt ausschließlich Anwendungscode in eine bestehende App Service-Umgebung.
 
+**Technologie-Stack:** Keine eigene Infrastruktur — GitHub-Actions-Pipeline auf der bestehenden App-Service-Umgebung aus Lab 7 (Build → Deploy in Slot → Swap).
+
 ---
 
 ## CI/CD-Grundlagen: Begriffe kurz geklärt

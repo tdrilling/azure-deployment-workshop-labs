@@ -4,6 +4,8 @@
 
 **Dauer:** ca. 20-25 Minuten (überwiegend Wartezeit).
 
+**Technologie-Stack:** Ubuntu Server (Linux) • Apache • PHP • MySQL — alles auf einer VM, automatisiert per Cloud-Init (gleiche Zielarchitektur wie Lab 1).
+
 ---
 
 ## Was Cloud-Init ist (kurz)

@@ -4,6 +4,8 @@
 
 **Dauer:** ca. 30-40 Minuten.
 
+**Technologie-Stack:** Windows Server • IIS • PHP • MariaDB — alles auf einer VM, automatisiert per DSC.
+
 ---
 
 ## Begriffsklärung zuerst: drei verschiedene Dinge, die oft verwechselt werden
