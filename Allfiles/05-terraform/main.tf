@@ -39,7 +39,7 @@ terraform {
   # Locking, z. B.:
   #
   # backend "azurerm" {
-  #   resource_group_name  = "rg-tfstate"
+  #   resource_group_name  = "rg-tfstate-<IHR-SUFFIX>"
   #   storage_account_name = "sttfstateXXXXX"
   #   container_name       = "tfstate"
   #   key                  = "lab5-lamp.tfstate"

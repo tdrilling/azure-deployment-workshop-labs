@@ -28,7 +28,7 @@ env:
   # und ist erst nach dessen Deployment bekannt (siehe Deployment-Outputs von Lab 7).
   # Als Repository-Variable hinterlegen: Settings > Secrets and variables > Actions > Variables.
   AZURE_WEBAPP_NAME: ${{ vars.AZURE_WEBAPP_NAME }}
-  AZURE_RESOURCE_GROUP: rg-appservice-lab-bicep
+  AZURE_RESOURCE_GROUP: rg-appservice-lab-bicep-<IHR-SUFFIX>
   ARTIFACT_NAME: wordpress-app-package
 
 jobs:

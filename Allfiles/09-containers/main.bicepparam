@@ -2,7 +2,7 @@
 //
 // Verwendung:
 //   az deployment group create \
-//     --resource-group rg-container-lab-bicep \
+//     --resource-group rg-container-lab-bicep-<IHR-SUFFIX> \
 //     --template-file main.bicep \
 //     --parameters main.bicepparam
 //
@@ -14,7 +14,7 @@
 using 'main.bicep'
 
 param location = 'westeurope'
-param resourceGroupName = 'rg-container-lab-bicep'
+param resourceGroupName = 'rg-container-lab-bicep-<IHR-SUFFIX>'
 
 param acrLoginServer = '<CHANGE_ME_ACR_LOGIN_SERVER>'
 param acrUsername = '<CHANGE_ME_ACR_USERNAME>'

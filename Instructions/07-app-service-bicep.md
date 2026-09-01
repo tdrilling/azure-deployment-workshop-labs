@@ -51,21 +51,21 @@ az mysql flexible-server list-skus --location westeurope -o table   # aktuelle S
 
 ## Schritt 1: Parameterdatei vorbereiten
 
-In `Allfiles/07-app-service-bicep/main.bicepparam` den Platzhalter `<CHANGE_ME_MYSQL_ADMIN_PASSWORD>` durch ein echtes Kennwort ersetzen, das die MySQL-Flexible-Server-Kennwortregel erfüllt (mindestens 8 Zeichen, mindestens 3 der 4 Zeichenklassen: Groß-/Kleinbuchstaben, Ziffern, Sonderzeichen — vor dem Kurstermin gegen die aktuelle Validierungsregel prüfen). Ohne ein gültiges Kennwort schlägt das Deployment mit einem Validierungsfehler ab.
+In `Allfiles/07-app-service-bicep/main.bicepparam` außerdem bei `resourceGroupName` das `<IHR-SUFFIX>` durch Ihr Kürzel ersetzen (rein kosmetisch, der Parameter dient nur als Tag). Dazu den Platzhalter `<CHANGE_ME_MYSQL_ADMIN_PASSWORD>` durch ein echtes Kennwort ersetzen, das die MySQL-Flexible-Server-Kennwortregel erfüllt (mindestens 8 Zeichen, mindestens 3 der 4 Zeichenklassen: Groß-/Kleinbuchstaben, Ziffern, Sonderzeichen — vor dem Kurstermin gegen die aktuelle Validierungsregel prüfen). Ohne ein gültiges Kennwort schlägt das Deployment mit einem Validierungsfehler ab.
 
 ## Schritt 2: Ressourcengruppe anlegen
 
 ```bash
-az group create --name rg-appservice-lab-bicep --location westeurope
+az group create --name rg-appservice-lab-bicep-<IHR-SUFFIX> --location westeurope
 ```
 
-Bewusst ein eigener Name (`rg-appservice-lab-bicep`), getrennt von `rg-lamp-lab-bicep` (Lab 4) und `rg-appservice-lab` (Lab 6, falls dort ein eigener Name verwendet wurde) — so bleiben alle Labs unabhängig voneinander deploybar.
+Bewusst ein eigener Name (`rg-appservice-lab-bicep-<IHR-SUFFIX>`), getrennt von `rg-lamp-lab-bicep-<IHR-SUFFIX>` (Lab 4) und `rg-appservice-lab-<IHR-SUFFIX>` (Lab 6, falls dort ein eigener Name verwendet wurde) — so bleiben alle Labs unabhängig voneinander deploybar.
 
 ## Schritt 3: Deployment vorab prüfen mit `what-if`
 
 ```bash
 az deployment group what-if \
-  --resource-group rg-appservice-lab-bicep \
+  --resource-group rg-appservice-lab-bicep-<IHR-SUFFIX> \
   --template-file Allfiles/07-app-service-bicep/main.bicep \
   --parameters Allfiles/07-app-service-bicep/main.bicepparam
 ```
@@ -76,7 +76,7 @@ Wie in Lab 4: unbedingt vor dem echten Deployment vorführen — bei einer Resou
 
 ```bash
 az deployment group create \
-  --resource-group rg-appservice-lab-bicep \
+  --resource-group rg-appservice-lab-bicep-<IHR-SUFFIX> \
   --template-file Allfiles/07-app-service-bicep/main.bicep \
   --parameters Allfiles/07-app-service-bicep/main.bicepparam \
   --name lab7-appservice-deployment
@@ -88,7 +88,7 @@ Laufzeit: ca. 5-8 Minuten (MySQL Flexible Server braucht dabei erfahrungsgemäß
 
 ```bash
 az deployment group show \
-  --resource-group rg-appservice-lab-bicep \
+  --resource-group rg-appservice-lab-bicep-<IHR-SUFFIX> \
   --name lab7-appservice-deployment \
   --query properties.outputs
 ```

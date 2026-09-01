@@ -1,6 +1,6 @@
 # Lab 8 — CI/CD mit GitHub Actions: Build → Deploy in Slot → Swap
 
-**Ziel:** Eine echte, lauffähige GitHub-Actions-Pipeline für die WordPress-App-Service-Umgebung aus Lab 7 (`rg-appservice-lab-bicep`, Web-App `app-wordpress-bicep-<uniqueString>`, Slot `staging`). Die Pipeline baut ein Deployment-Paket, deployt es per Zip-Deploy in den bestehenden `staging`-Slot und swappt diesen Slot anschließend in Production — exakt das Muster, das in Punkt 19 des Kurskonzepts als "Build → Deploy in Slot → Swap" angekündigt ist. Datei: `Allfiles/08-cicd-github-actions/.github/workflows/deploy.yml`.
+**Ziel:** Eine echte, lauffähige GitHub-Actions-Pipeline für die WordPress-App-Service-Umgebung aus Lab 7 (`rg-appservice-lab-bicep-<IHR-SUFFIX>`, Web-App `app-wordpress-bicep-<uniqueString>`, Slot `staging`). Die Pipeline baut ein Deployment-Paket, deployt es per Zip-Deploy in den bestehenden `staging`-Slot und swappt diesen Slot anschließend in Production — exakt das Muster, das in Punkt 19 des Kurskonzepts als "Build → Deploy in Slot → Swap" angekündigt ist. Datei: `Allfiles/08-cicd-github-actions/.github/workflows/deploy.yml`.
 
 **Dauer:** ca. 20-25 Minuten (Vorführung; die einmalige Authentifizierungs-Einrichtung in Schritt 1 läuft vorab, nicht live im Kurs).
 
@@ -97,7 +97,7 @@ az ad sp create --id <APP_ID_AUS_SCHRITT_2>
 az role assignment create \
   --assignee <APP_ID_AUS_SCHRITT_2> \
   --role Contributor \
-  --scope /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-appservice-lab-bicep
+  --scope /subscriptions/<SUBSCRIPTION_ID>/resourceGroups/rg-appservice-lab-bicep-<IHR-SUFFIX>
 
 # 5. Föderierten Credential anlegen — verknüpft die App-Registrierung mit GENAU
 #    diesem GitHub-Repository und GENAU diesem Branch (siehe Troubleshooting
@@ -126,6 +126,8 @@ Unter **Settings → Secrets and variables → Actions** im Repository:
   - `AZURE_SUBSCRIPTION_ID` — Ausgabe von `az account show --query id`
 - **Variables** (nicht sensibel, aber projektspezifisch):
   - `AZURE_WEBAPP_NAME` — der **tatsächliche** Web-App-Name inklusive `uniqueString()`-Suffix aus den Deployment-Outputs von Lab 7 (z. B. `app-wordpress-bicep-k7x2p9`). Dieser Name ist erst nach dem Lab-7-Deployment bekannt und darf nicht hartkodiert im Workflow stehen — siehe `Instructions/07-app-service-bicep.md`, Outputs-Abschnitt.
+
+`AZURE_RESOURCE_GROUP` ist dagegen direkt in `deploy.yml` hartkodiert (Zeile mit `AZURE_RESOURCE_GROUP: rg-appservice-lab-bicep-<IHR-SUFFIX>`), keine GitHub-Actions-Variable — `<IHR-SUFFIX>` dort einmalig vor dem ersten Workflow-Lauf durch Ihr eigenes Kürzel aus Lab 7 ersetzen und committen.
 
 ## Schritt 2: Die Workflow-Datei durchgehen
 
@@ -168,7 +170,7 @@ Nach erfolgreichem Swap zeigt die Production-URL denselben Stand wie zuvor die S
 - **`azure/login`-Schritt schlägt fehl mit `AADSTS70021` / `No matching federated identity record found`:** die mit Abstand häufigste OIDC-Fehlerursache. Der Subject-Claim des GitHub-Tokens (`repo:<org>/<repo>:ref:refs/heads/main` bei einem Lauf gegen den `main`-Branch, oder `repo:<org>/<repo>:environment:<name>` bei Nutzung eines GitHub-Environments) muss **exakt** — zeichengenau, inklusive Groß-/Kleinschreibung — mit dem `subject`-Feld übereinstimmen, das in Schritt 1 per `az ad app federated-credential create` hinterlegt wurde. Typische Ursachen: Lauf gegen einen anderen Branch als `main` gestartet, Repository-Name oder -Organisation im Subject-Claim falsch geschrieben, oder ein Environment im Workflow verwendet, aber der Federated Credential wurde nur für den Branch-Claim angelegt (oder umgekehrt). Prüfen mit `az ad app federated-credential list --id <APP_ID>` und exakt gegenspiegeln.
 - **Zip-Deploy im `deploy`-Job meldet Erfolg, aber der Staging-Slot zeigt weiterhin den alten Code:** App Service cached unter bestimmten Konfigurationen (insbesondere wenn `WEBSITE_RUN_FROM_PACKAGE=1` gesetzt ist) das zuletzt deployte Paket read-only und liest es nicht bei jedem Request neu ein — ein einfacher Datei-Überschreib-Deploy reicht dann nicht, es braucht einen vollständigen Neu-Deploy-Zyklus oder einen Neustart des Slots (`az webapp restart --slot staging ...`). Bei diesem Lab ist `WEBSITE_RUN_FROM_PACKAGE` nicht explizit gesetzt (kommt aus der App-Service-Konfiguration von Lab 7) — falls das Symptom auftritt, dort zuerst nachsehen, bevor an der Pipeline selbst gesucht wird.
 - **Swap läuft erfolgreich durch, Production zeigt aber sofort danach einen Fehler (z. B. Datenbankverbindung), obwohl Staging vorher fehlerfrei lief:** klassisches Symptom für App Settings, die **nicht** als "Deployment slot setting" (sticky) markiert sind. Nicht-sticky Settings wandern beim Swap **mit** dem Slot-Inhalt — ein Wert, der im `staging`-Slot testweise auf eine andere Datenbank oder einen Debug-Modus zeigte, landet dann unerwartet in Production. Sticky-markierte Settings bleiben dagegen am Slot hängen und wandern beim Swap **nicht** mit. Prüfen im Portal unter App Service → Configuration → Application settings, Spalte "Deployment slot setting", oder per `az webapp config appsettings list --slot staging ... --query "[?slotSetting].name"`.
-- **`deploy`- oder `swap`-Job schlägt mit einem `AuthorizationFailed`-Fehler der Azure-CLI fehl, obwohl `azure/login` selbst erfolgreich war:** die Anmeldung als solche funktioniert (Token-Austausch war erfolgreich), aber der Service Principal hat keine ausreichende RBAC-Rolle für die konkrete Aktion (Zip-Deploy bzw. Slot-Swap) im Scope der Ressourcengruppe. Kontrollieren mit `az role assignment list --assignee <APP_ID> --scope /subscriptions/<SUB_ID>/resourceGroups/rg-appservice-lab-bicep -o table` — fehlt der Eintrag oder ist die Rolle zu eng geschnitten (z. B. nur Reader statt Contributor), Schritt 1.4 nachholen bzw. korrigieren.
+- **`deploy`- oder `swap`-Job schlägt mit einem `AuthorizationFailed`-Fehler der Azure-CLI fehl, obwohl `azure/login` selbst erfolgreich war:** die Anmeldung als solche funktioniert (Token-Austausch war erfolgreich), aber der Service Principal hat keine ausreichende RBAC-Rolle für die konkrete Aktion (Zip-Deploy bzw. Slot-Swap) im Scope der Ressourcengruppe. Kontrollieren mit `az role assignment list --assignee <APP_ID> --scope /subscriptions/<SUB_ID>/resourceGroups/rg-appservice-lab-bicep-<IHR-SUFFIX> -o table` — fehlt der Eintrag oder ist die Rolle zu eng geschnitten (z. B. nur Reader statt Contributor), Schritt 1.4 nachholen bzw. korrigieren.
 - **`Run workflow`-Button erscheint nicht im Actions-Tab:** meist ein Zeichen, dass `deploy.yml` noch nicht im `main`-Branch liegt (GitHub liest `workflow_dispatch`-Trigger nur aus Workflow-Dateien, die bereits im Standard-Branch committet sind) oder die Datei nicht exakt unter `.github/workflows/` liegt — YAML-Syntaxfehler in der Datei führen ebenfalls dazu, dass der Workflow im Actions-Tab gar nicht erst gelistet wird.
 
 ## Ausblick

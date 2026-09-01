@@ -27,10 +27,10 @@ cd ~/azure-deployment-workshop-labs   # Repo-Root — WICHTIG, siehe Hinweis unt
 test -f Allfiles/02-cloud-init/cloud-init.yaml \
   || { echo "FEHLER: cloud-init.yaml nicht gefunden — bin ich im Repo-Root? (aktuelles Verzeichnis: $(pwd))"; exit 1; }
 
-az group create --name rg-lamp-lab-ci --location westeurope
+az group create --name rg-lamp-lab-ci-<IHR-SUFFIX> --location westeurope
 
 az vm create \
-  --resource-group rg-lamp-lab-ci \
+  --resource-group rg-lamp-lab-ci-<IHR-SUFFIX> \
   --name vm-lamp-ci \
   --image Ubuntu2404 \
   --size Standard_B2s \
@@ -39,7 +39,7 @@ az vm create \
   --public-ip-sku Standard \
   --custom-data "$(pwd)/Allfiles/02-cloud-init/cloud-init.yaml"
 
-az vm open-port --resource-group rg-lamp-lab-ci --name vm-lamp-ci --port 80 --priority 900
+az vm open-port --resource-group rg-lamp-lab-ci-<IHR-SUFFIX> --name vm-lamp-ci --port 80 --priority 900
 ```
 
 **Wichtig — unbedingt aus dem Repo-Root heraus deployen, nicht aus `Allfiles/02-cloud-init/`:** Nach Schritt 1 befindet man sich beim Bearbeiten der YAML-Datei ganz natürlich direkt im Ordner `Allfiles/02-cloud-init/` — von dort aus zeigt der Pfad `Allfiles/02-cloud-init/cloud-init.yaml` aber ins Leere (er würde `Allfiles/02-cloud-init/Allfiles/02-cloud-init/cloud-init.yaml` ergeben). `az vm create` prüft bei `--custom-data` **nicht**, ob am angegebenen Pfad überhaupt eine Datei existiert: Zeigt der Pfad ins Leere, verwendet die Azure-CLI stillschweigend den **Pfad-String selbst** als Custom-Data-Inhalt statt eines Fehlers (bekanntes, nie behobenes CLI-Verhalten, siehe [Azure/azure-cli#5929](https://github.com/Azure/azure-cli/issues/5929)) — Cloud-Init läuft dann nie, und das fällt oft erst 20 Minuten später beim Prüfen der VM auf, nicht sofort. Deshalb im Befehl oben: (1) explizit ins Repo-Root wechseln, unabhängig davon, wo man vorher war, (2) eine harte `test -f`-Prüfung davor, die bei falschem Verzeichnis sofort mit klarer Fehlermeldung abbricht — bevor überhaupt eine Azure-Ressource entsteht — statt den Fehler erst stillschweigend durchlaufen zu lassen, und (3) zusätzlich `"$(pwd)/..."` als absoluter Pfad, damit `--custom-data` selbst bei korrektem Verzeichnis nicht erneut von einer versteckten relativen Auflösung abhängt.
@@ -49,13 +49,13 @@ az vm open-port --resource-group rg-lamp-lab-ci --name vm-lamp-ci --port 80 --pr
 ### Azure PowerShell
 
 ```powershell
-New-AzResourceGroup -Name rg-lamp-lab-ci -Location westeurope
+New-AzResourceGroup -Name rg-lamp-lab-ci-<IHR-SUFFIX> -Location westeurope
 
 $customData = [Convert]::ToBase64String(
     [IO.File]::ReadAllBytes("Allfiles/02-cloud-init/cloud-init.yaml"))
 
 New-AzVm `
-  -ResourceGroupName rg-lamp-lab-ci `
+  -ResourceGroupName rg-lamp-lab-ci-<IHR-SUFFIX> `
   -Name vm-lamp-ci `
   -Location westeurope `
   -Image "Canonical:ubuntu-24_04-lts:server:latest" `

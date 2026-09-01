@@ -33,7 +33,7 @@ Alternativ im Portal die Suche oben nutzen: „WordPress" eingeben, das Ergebnis
 ## Schritt 2: Tab „Basics" — Projekt- und Hosting-Details
 
 - **Subscription:** die richtige Subscription prüfen.
-- **Resource Group:** „Neu erstellen", z. B. `rg-wordpress-managed-lab`.
+- **Resource Group:** „Neu erstellen", z. B. `rg-wordpress-managed-lab-<IHR-SUFFIX>`.
 - **Region:** eine Region nahe der Kursumgebung wählen, z. B. `West Europe`.
 - **Name:** ein global eindeutiger Web-App-Name, z. B. `wp-managed-<IHR-SUFFIX>`.
 - **Hosting Plan:** Tarif **Standard** auswählen. Über „Change plan" lassen sich Features/Preise der verfügbaren Tarife vergleichen — für dieses Lab genügt der vorgeschlagene Standard-Tarif, ein Wechsel ist nicht nötig.
@@ -77,7 +77,7 @@ Wer die Add-ins nicht kennt oder für dieses Lab schlank bleiben will, kann die 
 Hier kommt Ihr Lab-6/7-Wissen zurück ins Spiel. Alle Ressourcen der neuen Gruppe auflisten:
 
 ```bash
-az resource list --resource-group rg-wordpress-managed-lab --output table
+az resource list --resource-group rg-wordpress-managed-lab-<IHR-SUFFIX> --output table
 ```
 
 Vergleichen Sie die Ausgabe mit dem, was Sie in Lab 6 manuell einzeln angelegt haben (`Microsoft.Web/serverfarms`, `Microsoft.Web/sites`, `Microsoft.DBforMySQL/flexibleServers`) — plus, je nach Add-in-Auswahl aus Schritt 4, zusätzlich `Microsoft.Cdn/profiles`, `Microsoft.Storage/storageAccounts`, `Microsoft.ManagedIdentity/userAssignedIdentities`. Dieselben Ressourcentypen, die Sie in Lab 6 einzeln per `az ... create` provisioniert haben, entstehen hier alle gemeinsam aus einem Formular.
@@ -85,7 +85,7 @@ Vergleichen Sie die Ausgabe mit dem, was Sie in Lab 6 manuell einzeln angelegt h
 Web-Server-Konfiguration der neuen Web App direkt prüfen:
 
 ```bash
-az webapp config show --resource-group rg-wordpress-managed-lab --name wp-managed-<IHR-SUFFIX> --query linuxFxVersion
+az webapp config show --resource-group rg-wordpress-managed-lab-<IHR-SUFFIX> --name wp-managed-<IHR-SUFFIX> --query linuxFxVersion
 ```
 
 Der zurückgegebene Wert zeigt ein vorkonfiguriertes WordPress-spezifisches Container-/Runtime-Image, nicht die generische `PHP:8.3`-Laufzeit aus Lab 6/7 — technischer Beleg für den NGINX-Unterschied aus der Bridge oben.
@@ -116,7 +116,7 @@ Der zurückgegebene Wert zeigt ein vorkonfiguriertes WordPress-spezifisches Cont
 ## Schritt 8: Aufräumen
 
 ```bash
-az group delete --name rg-wordpress-managed-lab --yes --no-wait
+az group delete --name rg-wordpress-managed-lab-<IHR-SUFFIX> --yes --no-wait
 ```
 
 Löscht alle in diesem Lab angelegten Ressourcen (Web App, MySQL Flexible Server, ggf. CDN/Front-Door-Profil, Storage-Konto) in einem Schritt — dieselbe Aufräum-Logik wie am Ende jedes vorherigen Labs.

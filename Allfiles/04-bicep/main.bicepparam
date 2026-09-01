@@ -2,7 +2,7 @@
 //
 // Verwendung:
 //   az deployment group create \
-//     --resource-group rg-lamp-lab-bicep \
+//     --resource-group rg-lamp-lab-bicep-<IHR-SUFFIX> \
 //     --template-file main.bicep \
 //     --parameters main.bicepparam
 //
@@ -19,7 +19,7 @@
 using 'main.bicep'
 
 param location = 'westeurope'
-param resourceGroupName = 'rg-lamp-lab-bicep'
+param resourceGroupName = 'rg-lamp-lab-bicep-<IHR-SUFFIX>'
 param vmName = 'vm-lamp-bicep'
 param vmSize = 'Standard_B2s'
 param adminUsername = 'azureuser'

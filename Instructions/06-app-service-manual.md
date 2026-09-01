@@ -18,21 +18,21 @@ Der zweite neue Baustein ist die Datenbank: Bisher lief MySQL in Lab 1/2/4 immer
 
 - Eine funktionierende Azure-CLI-Sitzung (`az login`), unabhängig von den VM-Labs — dieses Lab braucht keine der vorherigen Ressourcengruppen.
 - Lokal (oder in Azure Cloud Shell) `unzip`/`zip` sowie `curl` oder `wget`, um das WordPress-Release herunterzuladen und neu zu packen.
-- Ein Namenspräfix, das Sie sich für dieses Lab merken (`<IHR-SUFFIX>` unten) — sowohl der Web-App-Name als auch der MySQL-Servername müssen **global eindeutig** sein (beide bilden Teil eines öffentlichen DNS-Namens: `*.azurewebsites.net` bzw. `*.mysql.database.azure.com`). Initialen + Datum funktionieren zuverlässig, z. B. `tw0822`.
+- Ein Namenspräfix, das Sie sich für dieses Lab merken (`<IHR-SUFFIX>` unten, dieselbe Konvention wie schon für Resource-Group-Namen ab Lab 1) — ab hier zusätzlich zur Teilnehmertrennung auch, weil sowohl der Web-App-Name als auch der MySQL-Servername **global eindeutig** sein müssen (beide bilden Teil eines öffentlichen DNS-Namens: `*.azurewebsites.net` bzw. `*.mysql.database.azure.com`). Initialen + Datum funktionieren zuverlässig, z. B. `tw0822`.
 
 ## Schritt 1: Ressourcengruppe anlegen
 
 ```bash
-az group create --name rg-appservice-lab --location westeurope
+az group create --name rg-appservice-lab-<IHR-SUFFIX> --location westeurope
 ```
 
-Eigener Name (`rg-appservice-lab`), getrennt von den VM-Ressourcengruppen aus Block 1/2 — Sie könnten dieses Lab parallel zu jedem der vorherigen laufen lassen, ohne Namenskollisionen.
+Eigener Name (`rg-appservice-lab-<IHR-SUFFIX>`), getrennt von den VM-Ressourcengruppen aus Block 1/2 — Sie könnten dieses Lab parallel zu jedem der vorherigen laufen lassen, ohne Namenskollisionen.
 
 ## Schritt 2: App Service Plan anlegen (Linux, B1)
 
 ```bash
 az appservice plan create \
-  --resource-group rg-appservice-lab \
+  --resource-group rg-appservice-lab-<IHR-SUFFIX> \
   --name plan-wordpress-lab \
   --sku B1 \
   --is-linux
@@ -46,7 +46,7 @@ Der App Service Plan ist die eigentliche Recheneinheit dahinter — vergleichbar
 
 ```bash
 az webapp create \
-  --resource-group rg-appservice-lab \
+  --resource-group rg-appservice-lab-<IHR-SUFFIX> \
   --plan plan-wordpress-lab \
   --name app-wordpress-<IHR-SUFFIX> \
   --runtime "PHP:8.3"
@@ -66,7 +66,7 @@ Dies ist die erste tatsächliche Bereitstellung eines Flexible Servers im Kurs (
 
 ```bash
 az mysql flexible-server create \
-  --resource-group rg-appservice-lab \
+  --resource-group rg-appservice-lab-<IHR-SUFFIX> \
   --name mysql-wordpress-<IHR-SUFFIX> \
   --location westeurope \
   --admin-user wpadmin \
@@ -88,7 +88,7 @@ Datenbank für WordPress anlegen:
 
 ```bash
 az mysql flexible-server db create \
-  --resource-group rg-appservice-lab \
+  --resource-group rg-appservice-lab-<IHR-SUFFIX> \
   --server-name mysql-wordpress-<IHR-SUFFIX> \
   --database-name wordpress
 ```
@@ -97,7 +97,7 @@ Firewall-Regel, die es Azure-Diensten (inkl. App Service) erlaubt, den Server zu
 
 ```bash
 az mysql flexible-server firewall-rule create \
-  --resource-group rg-appservice-lab \
+  --resource-group rg-appservice-lab-<IHR-SUFFIX> \
   --name mysql-wordpress-<IHR-SUFFIX> \
   --rule-name AllowAzureServices \
   --start-ip-address 0.0.0.0 \
@@ -160,7 +160,7 @@ Zwei unterschiedliche Azure-Mechanismen stehen hier zur Wahl — beide legen am 
 
 ```bash
 az webapp config connection-string set \
-  --resource-group rg-appservice-lab \
+  --resource-group rg-appservice-lab-<IHR-SUFFIX> \
   --name app-wordpress-<IHR-SUFFIX> \
   --connection-string-type MySQL \
   --settings wordpressdb='Database=wordpress;Data Source=mysql-wordpress-<IHR-SUFFIX>.mysql.database.azure.com;User Id=wpadmin;Password=<CHANGE_ME_DB_PASSWORD>'
@@ -172,7 +172,7 @@ App Service injiziert Connection Strings als **eine einzige** Umgebungsvariable 
 
 ```bash
 az webapp config appsettings set \
-  --resource-group rg-appservice-lab \
+  --resource-group rg-appservice-lab-<IHR-SUFFIX> \
   --name app-wordpress-<IHR-SUFFIX> \
   --settings \
     WORDPRESS_DB_HOST="mysql-wordpress-<IHR-SUFFIX>.mysql.database.azure.com" \
@@ -187,7 +187,7 @@ App Settings werden 1:1 unter dem angegebenen Namen als Umgebungsvariable im PHP
 
 ```bash
 az webapp deploy \
-  --resource-group rg-appservice-lab \
+  --resource-group rg-appservice-lab-<IHR-SUFFIX> \
   --name app-wordpress-<IHR-SUFFIX> \
   --src-path wordpress-deploy.zip \
   --type zip
@@ -198,7 +198,7 @@ az webapp deploy \
 ## Schritt 8: Aufrufen und WordPress-Setup abschließen
 
 ```bash
-az webapp browse --resource-group rg-appservice-lab --name app-wordpress-<IHR-SUFFIX>
+az webapp browse --resource-group rg-appservice-lab-<IHR-SUFFIX> --name app-wordpress-<IHR-SUFFIX>
 ```
 
 oder direkt die URL öffnen: `https://app-wordpress-<IHR-SUFFIX>.azurewebsites.net`. Es erscheint das bekannte WordPress-Setup-Formular (Sprache, Site-Titel, Admin-Zugangsdaten) — identisch zu Lab 1/2/4, nur dass die Datenbankverbindung diesmal gegen den Flexible Server aus Schritt 4 läuft, nicht gegen lokales MySQL auf derselben Maschine.
@@ -225,11 +225,11 @@ Der Punkt in der letzten Zeile der Tabelle ist die Kehrseite: Was Sie in Schritt
 ## Troubleshooting
 
 - **`az webapp create` schlägt mit einem Fehler zur Runtime-Zeichenkette fehl (z. B. "runtime not found" bei `"PHP|8.3"`):** aktuelle Azure-CLI-Versionen erwarten das Doppelpunkt-Format `"PHP:8.3"`, ältere Tutorials/Blogposts verwenden noch das Pipe-Format `"PHP|8.3"` aus einer älteren CLI-Syntax — mit `az webapp list-runtimes --os linux -o table` die aktuell gültige Schreibweise und Version prüfen.
-- **WordPress zeigt "Error establishing a database connection":** meist ein Namensmismatch zwischen den vier `getenv()`-Aufrufen in `wp-config.php` (Schritt 5) und den tatsächlichen App-Setting-Namen aus Schritt 6 — `az webapp config appsettings list --resource-group rg-appservice-lab --name app-wordpress-<IHR-SUFFIX> -o table` zeigt die tatsächlich gesetzten Namen; oft ein simpler Tippfehler (`WORDPRESS_DB_HOST` vs. `WP_DB_HOST` o. ä.).
-- **Dieselbe Fehlermeldung, obwohl Namen korrekt sind — Ursache liegt am MySQL-Server:** die Firewall-Regel aus Schritt 4 (`AllowAzureServices`, 0.0.0.0/0.0.0.0) fehlt oder wurde nicht übernommen — prüfen mit `az mysql flexible-server firewall-rule list --resource-group rg-appservice-lab --name mysql-wordpress-<IHR-SUFFIX> -o table`. Ohne diese Regel blockiert der Flexible Server jede Verbindung von der (nicht vorhersagbaren) ausgehenden IP der Web App.
+- **WordPress zeigt "Error establishing a database connection":** meist ein Namensmismatch zwischen den vier `getenv()`-Aufrufen in `wp-config.php` (Schritt 5) und den tatsächlichen App-Setting-Namen aus Schritt 6 — `az webapp config appsettings list --resource-group rg-appservice-lab-<IHR-SUFFIX> --name app-wordpress-<IHR-SUFFIX> -o table` zeigt die tatsächlich gesetzten Namen; oft ein simpler Tippfehler (`WORDPRESS_DB_HOST` vs. `WP_DB_HOST` o. ä.).
+- **Dieselbe Fehlermeldung, obwohl Namen korrekt sind — Ursache liegt am MySQL-Server:** die Firewall-Regel aus Schritt 4 (`AllowAzureServices`, 0.0.0.0/0.0.0.0) fehlt oder wurde nicht übernommen — prüfen mit `az mysql flexible-server firewall-rule list --resource-group rg-appservice-lab-<IHR-SUFFIX> --name mysql-wordpress-<IHR-SUFFIX> -o table`. Ohne diese Regel blockiert der Flexible Server jede Verbindung von der (nicht vorhersagbaren) ausgehenden IP der Web App.
 - **Die Website zeigt nach dem Deployment die Standard-Platzhalterseite von App Service ("Your web app is running and waiting for your content") statt WordPress:** das Zip-Archiv aus Schritt 5 enthielt eine wrappende `wordpress/`-Ebene, `index.php` liegt dadurch nicht am Wurzelverzeichnis von `/home/site/wwwroot`. Mit dem Kudu-/SCM-Endpunkt (`https://app-wordpress-<IHR-SUFFIX>.scm.azurewebsites.net`) oder `az webapp ssh` die tatsächliche Verzeichnisstruktur prüfen; im Zweifel neu zippen, diesmal **innerhalb** des entpackten `wordpress`-Ordners (`zip -r ../wordpress-deploy.zip .`, nicht `zip -r wordpress-deploy.zip wordpress`).
 - **`az mysql flexible-server create` bricht mit einem Fehler zur Passwortkomplexität ab:** das gewählte `<CHANGE_ME_DB_PASSWORD>` erfüllt nicht die Mindestanforderungen (typischerweise 8–128 Zeichen, mindestens drei von vier Zeichenklassen) — ein längeres Passwort mit Groß-/Kleinbuchstaben, Ziffer und Sonderzeichen verwenden.
-- **`az webapp deploy` läuft durch, aber Änderungen erscheinen nicht sofort im Browser:** App Service cached/restart-verzögert gelegentlich nach einem Zip-Deployment — `az webapp restart --resource-group rg-appservice-lab --name app-wordpress-<IHR-SUFFIX>` erzwingt einen Neustart des PHP-Prozesses.
+- **`az webapp deploy` läuft durch, aber Änderungen erscheinen nicht sofort im Browser:** App Service cached/restart-verzögert gelegentlich nach einem Zip-Deployment — `az webapp restart --resource-group rg-appservice-lab-<IHR-SUFFIX> --name app-wordpress-<IHR-SUFFIX>` erzwingt einen Neustart des PHP-Prozesses.
 
 ## Ausblick
 

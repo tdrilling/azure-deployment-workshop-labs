@@ -2,7 +2,7 @@
 //
 // Verwendung:
 //   az deployment group create \
-//     --resource-group rg-appservice-lab-bicep \
+//     --resource-group rg-appservice-lab-bicep-<IHR-SUFFIX> \
 //     --template-file main.bicep \
 //     --parameters main.bicepparam
 //
@@ -15,7 +15,7 @@
 using 'main.bicep'
 
 param location = 'westeurope'
-param resourceGroupName = 'rg-appservice-lab-bicep'
+param resourceGroupName = 'rg-appservice-lab-bicep-<IHR-SUFFIX>'
 param appServicePlanName = 'asp-wordpress-bicep'
 param appServicePlanSku = 'S1'
 param webAppNamePrefix = 'app-wordpress-bicep'

@@ -22,10 +22,10 @@
 ## Schritt 1: Windows-VM anlegen
 
 ```bash
-az group create --name rg-wimp-lab --location westeurope
+az group create --name rg-wimp-lab-<IHR-SUFFIX> --location westeurope
 
 az vm create \
-  --resource-group rg-wimp-lab \
+  --resource-group rg-wimp-lab-<IHR-SUFFIX> \
   --name vm-wimp-01 \
   --image Win2022Datacenter \
   --size Standard_D2s_v5 \
@@ -33,8 +33,8 @@ az vm create \
   --admin-password "<CHANGE_ME>" \
   --public-ip-sku Standard
 
-az vm open-port --resource-group rg-wimp-lab --name vm-wimp-01 --port 80 --priority 900
-az vm open-port --resource-group rg-wimp-lab --name vm-wimp-01 --port 3389 --priority 901
+az vm open-port --resource-group rg-wimp-lab-<IHR-SUFFIX> --name vm-wimp-01 --port 80 --priority 900
+az vm open-port --resource-group rg-wimp-lab-<IHR-SUFFIX> --name vm-wimp-01 --port 3389 --priority 901
 ```
 
 `Standard_D2s_v5` statt `Standard_B2s` — Windows Server + IIS + MySQL brauchen für ein reibungsloses Lab mehr Arbeitsspeicher als die schlanke Linux-Variante aus Lab 1/2 (B-Serie ist "burstable" und für diesen Workload eher knapp bemessen).
@@ -51,10 +51,22 @@ Beide Kennwörter übergeben Sie direkt, aber verschlüsselt, über `--protected
 
 **Das ist Voraussetzung für Schritt 4, nicht optional — zwei Dateien müssen vorher bereitstehen.** Die DSC-Erweiterung lädt die Konfiguration zur Laufzeit von einer URL (`configuration.url` im Extension-Aufruf, Schritt 4) herunter und kompiliert sie erst auf der VM. Das PowerShell-Skript lädt seinerseits beim Ausführen den MySQL Installer nach — auch diese Datei muss vorher erreichbar sein, sonst schlägt Schritt 4 mit `403 Forbidden` fehl (siehe 3b).
 
+Beide Dateien landen in einem Blob-Storage-Account, den Sie für dieses Lab selbst anlegen — Storage-Account-Namen sind **global eindeutig** über ganz Azure hinweg (wie schon die Web-App- und MySQL-Servernamen in Lab 6). Verwenden Sie denselben `<IHR-SUFFIX>` wie dort, z. B. `tw0822`:
+
+```bash
+az storage account create \
+  --resource-group rg-wimp-lab-<IHR-SUFFIX> \
+  --name stwimp<IHR-SUFFIX> \
+  --location westeurope \
+  --sku Standard_LRS
+```
+
+Den gewählten Namen (`stwimp<IHR-SUFFIX>`) setzen Sie in den folgenden Befehlen jeweils für `<STORAGE-ACCOUNT>` ein.
+
 ### 3a. PowerShell-Skript als ZIP
 
 ```bash
-# Container einmalig anlegen, falls er noch nicht existiert:
+# Erforderlich, bevor Sie etwas hochladen koennen -- der Name "dsc" ist fest vorgegeben (siehe configuration.url in Schritt 4 und $msiUrl im Skript). Befehl ist idempotent, schadet also nicht, wenn der Container schon existiert:
 az storage container create \
   --account-name <STORAGE-ACCOUNT> \
   --name dsc \
@@ -74,8 +86,10 @@ Anonymer Lesezugriff auf den Container (`--public-access blob`) ist der einfachs
 
 `dev.mysql.com` und auch der MySQL-Archiv-Downloadpfad blocken automatisierte Downloads von Azure-Rechenzentrums-IP-Adressen mit `403 Forbidden` (Oracle Bot-/Scraper-Schutz), auch mit gesetztem Browser-User-Agent. Ein Skript kann die Datei deshalb nicht selbst besorgen — Browser-Downloads sind vom Schutz nicht betroffen:
 
-1. Version 8.0.39.0 (community, **offline**-Installer, nicht die kleine "web"-Variante) einmalig per eigenem Browser laden: https://downloads.mysql.com/archives/installer/
-2. In denselben Container hochladen:
+1. Version 8.0.39.0 (community, **offline**-Installer, nicht die kleine "web"-Variante) einmalig per eigenem Browser laden: https://downloads.mysql.com/archives/installer/ — landet im lokalen Download-Ordner Ihres Rechners, ca. 400+ MB.
+2. Von dort direkt in den Blob-Container hochladen — **nicht** über den Datei-Upload-Knopf der Azure Cloud Shell (der ist für Dateien dieser Größe zu klein bemessen und bricht ab). Zwei Wege, die das umgehen, weil sie direkt vom lokalen Rechner zum Storage Account übertragen, ohne über Cloud Shell zu laufen:
+   - **Azure Storage Explorer** (Desktop-App, kein CLI-Setup nötig): mit dem Azure-Konto anmelden, zum Storage Account und Container `dsc` navigieren, Datei per Drag & Drop hochladen — verkraftet große Dateien problemlos.
+   - **Lokal installierte Azure CLI:** direkt im Download-Ordner ausführen:
 
 ```bash
 az storage blob upload \
@@ -93,7 +107,7 @@ Die Konfigurationsargumente werden als flaches `configurationArguments`-Dictiona
 
 ```bash
 az vm extension set \
-  --resource-group rg-wimp-lab \
+  --resource-group rg-wimp-lab-<IHR-SUFFIX> \
   --vm-name vm-wimp-01 \
   --name DSC \
   --publisher Microsoft.Powershell \
@@ -119,7 +133,7 @@ Tragen Sie hier Ihre beiden Kennwörter aus Schritt 2 ein — ersetzen Sie **bei
 
 ```bash
 az vm extension show \
-  --resource-group rg-wimp-lab \
+  --resource-group rg-wimp-lab-<IHR-SUFFIX> \
   --vm-name vm-wimp-01 \
   --name DSC \
   --query instanceView.statuses

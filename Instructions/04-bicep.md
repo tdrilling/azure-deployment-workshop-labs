@@ -50,7 +50,7 @@ Den SSH-Schlüssel aus Lab 1 wiederverwenden — falls noch nicht vorhanden: sie
 
 ## Schritt 1: Parameterdatei vorbereiten
 
-In `Allfiles/04-bicep/main.bicepparam` den Platzhalter `<CHANGE_ME_SSH_PUBLIC_KEY>` durch den Inhalt von `~/.ssh/workshop_lab.pub` ersetzen:
+In `Allfiles/04-bicep/main.bicepparam` den Platzhalter `<CHANGE_ME_SSH_PUBLIC_KEY>` durch den Inhalt von `~/.ssh/workshop_lab.pub` ersetzen. Dort außerdem bei `resourceGroupName` das `<IHR-SUFFIX>` durch Ihr Kürzel ersetzen (rein kosmetisch — der Parameter dient nur als Tag, siehe Kommentar im Template —, aber ohne Ersetzung bliebe der Platzhalter-Text wörtlich in der Ressourcen-Tag stehen):
 
 ```bash
 cat ~/.ssh/workshop_lab.pub
@@ -63,16 +63,16 @@ Optional, aber empfohlen: `sshSourceAddressPrefix` von `'*'` auf die eigene IP e
 ## Schritt 2: Ressourcengruppe anlegen
 
 ```bash
-az group create --name rg-lamp-lab-bicep --location westeurope
+az group create --name rg-lamp-lab-bicep-<IHR-SUFFIX> --location westeurope
 ```
 
-Bewusst ein eigener Name (`rg-lamp-lab-bicep`, nicht `rg-lamp-lab` aus Lab 1 oder `rg-lamp-lab-ci` aus Lab 2) — so lassen sich alle drei Labs bei Bedarf parallel deployen, ohne Namenskollisionen bei VNet/NSG/VM. `main.bicep` legt die Ressourcengruppe selbst **nicht** an (Deployment erfolgt auf Resource-Group-Scope, `targetScope = 'resourceGroup'`) — das bleibt bewusst ein separater Schritt, konsistent zu Lab 1/2.
+Bewusst ein eigener Name (`rg-lamp-lab-bicep-<IHR-SUFFIX>`, nicht `rg-lamp-lab-<IHR-SUFFIX>` aus Lab 1 oder `rg-lamp-lab-ci-<IHR-SUFFIX>` aus Lab 2) — so lassen sich alle drei Labs bei Bedarf parallel deployen, ohne Namenskollisionen bei VNet/NSG/VM. `main.bicep` legt die Ressourcengruppe selbst **nicht** an (Deployment erfolgt auf Resource-Group-Scope, `targetScope = 'resourceGroup'`) — das bleibt bewusst ein separater Schritt, konsistent zu Lab 1/2.
 
 ## Schritt 3: Deployment vorab prüfen mit `what-if`
 
 ```bash
 az deployment group what-if \
-  --resource-group rg-lamp-lab-bicep \
+  --resource-group rg-lamp-lab-bicep-<IHR-SUFFIX> \
   --template-file Allfiles/04-bicep/main.bicep \
   --parameters Allfiles/04-bicep/main.bicepparam
 ```
@@ -83,7 +83,7 @@ az deployment group what-if \
 
 ```bash
 az deployment group create \
-  --resource-group rg-lamp-lab-bicep \
+  --resource-group rg-lamp-lab-bicep-<IHR-SUFFIX> \
   --template-file Allfiles/04-bicep/main.bicep \
   --parameters Allfiles/04-bicep/main.bicepparam \
   --name lab4-bicep-deployment
@@ -95,7 +95,7 @@ az deployment group create \
 
 ```bash
 az deployment group show \
-  --resource-group rg-lamp-lab-bicep \
+  --resource-group rg-lamp-lab-bicep-<IHR-SUFFIX> \
   --name lab4-bicep-deployment \
   --query properties.outputs
 ```
@@ -108,7 +108,7 @@ Exakt wie in Lab 2 — die VM ist bereits "Running", bevor Cloud-Init fertig ist
 
 ```bash
 ssh -i ~/.ssh/workshop_lab azureuser@$(az deployment group show \
-  --resource-group rg-lamp-lab-bicep \
+  --resource-group rg-lamp-lab-bicep-<IHR-SUFFIX> \
   --name lab4-bicep-deployment \
   --query properties.outputs.publicIpAddress.value -o tsv) "cloud-init status --wait"
 ```
@@ -157,7 +157,7 @@ Kompiliert `main.bicep` (inkl. aller Module) zu einem einzelnen, vollständig au
 - **`az deployment group create` bricht mit einem generischen JSON-Parserfehler bei `--parameters main.bicepparam` ab:** installierte Azure-CLI/Bicep-CLI-Version zu alt für `.bicepparam` (siehe Schritt 0) — mit `az bicep upgrade` beheben, oder ersatzweise eine `main.parameters.json` im klassischen ARM-Parameterformat erzeugen (`az bicep generate-params` erzeugt ein Gerüst).
 - **`what-if` zeigt unerwartet "Delete"-Operationen an bestehenden Ressourcen:** meist ein Zeichen, dass in derselben Ressourcengruppe bereits abweichende Ressourcen aus einem vorherigen, manuell veränderten Lauf liegen — vor dem echten Deployment klären, nicht einfach durchdeployen.
 - **Deployment schlägt mit `PublicIPCountLimitReached` oder ähnlichen Kontingent-Fehlern fehl:** insbesondere wenn Lab 1/2/3 parallel in derselben Subscription bereits deployt sind — Subscription-Limits prüfen mit `az vm list-usage --location westeurope -o table`.
-- **Namenskollision bei parallelem Deployment mit Lab 1/2/3:** durch die bewusst eigenen Namen (`rg-lamp-lab-bicep`, `vm-lamp-bicep`, `vnet-lamp-bicep` usw.) sollte das nicht auftreten — falls doch ein Name manuell geändert wurde, prüft `what-if` (Schritt 3) das zuverlässig vor dem echten Deployment.
+- **Namenskollision bei parallelem Deployment mit Lab 1/2/3:** durch die bewusst eigenen Namen (`rg-lamp-lab-bicep-<IHR-SUFFIX>`, `vm-lamp-bicep`, `vnet-lamp-bicep` usw.) sollte das nicht auftreten — falls doch ein Name manuell geändert wurde, prüft `what-if` (Schritt 3) das zuverlässig vor dem echten Deployment.
 - **`DnsRecordCreateConflict` beim Deployment der Public IP:** `dnsLabelPrefix` ist nicht global eindeutig — der auto-generierte Default (`uniqueString(resourceGroup().id)`) tritt dann auf, wenn der Parameter in `main.bicepparam` versehentlich überschrieben wurde; auskommentierte Zeile in der Parameterdatei dann wieder entfernen bzw. anpassen.
 - **Bereitgestellte API-Version einer Ressource ist inzwischen veraltet ("This API version is deprecated"):** kein Deployment-Abbruch, nur eine Warnung — trotzdem vor dem Kurstermin mit `az provider show --namespace Microsoft.Compute --query "resourceTypes[?resourceType=='virtualMachines'].apiVersions[0]" -o tsv` (analog für `Microsoft.Network`) die jeweils aktuellste stabile Version prüfen und bei Bedarf in den Modulen nachziehen.
 

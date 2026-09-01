@@ -6,6 +6,8 @@
 
 ---
 
+**Namenskonvention für dieses und alle folgenden Labs:** Resource-Group-Namen enthalten in den Anleitungen den Platzhalter `<IHR-SUFFIX>` — ersetzen Sie ihn überall durch dasselbe, für Sie eindeutige Kürzel (Initialen + Datum funktionieren zuverlässig, z. B. `tw0822`). Das hält Ihre Ressourcen von denen anderer Teilnehmer getrennt, falls mehrere Personen dieselbe Azure-Subscription teilen — schadet aber nicht, wenn Sie allein in einer eigenen Subscription arbeiten. Ab Lab 6 verwenden Sie denselben `<IHR-SUFFIX>`-Wert zusätzlich für global eindeutige Ressourcennamen (Web-Apps, MySQL-Server, Storage Accounts).
+
 ## Schritt 0: SSH-Schlüsselpaar bereitstellen (falls noch nicht vorhanden)
 
 ```bash
@@ -20,9 +22,9 @@ Alle drei Wege erzeugen dieselbe Ressource. Im Kurs führen wir mindestens zwei 
 
 ### 1a) Azure Portal
 
-1. **Ressourcengruppen** → **Erstellen** → Name `rg-lamp-lab`, Region z. B. `West Europe`.
+1. **Ressourcengruppen** → **Erstellen** → Name `rg-lamp-lab-<IHR-SUFFIX>`, Region z. B. `West Europe`.
 2. **Virtuelle Computer** → **Erstellen** → **Azure-VM**.
-3. Basis: Ressourcengruppe `rg-lamp-lab`, VM-Name `vm-lamp-01`, Region wie oben, Image **Ubuntu Server 24.04 LTS - x64 Gen2**, Größe `Standard_B2s` (reicht für das Lab).
+3. Basis: Ressourcengruppe `rg-lamp-lab-<IHR-SUFFIX>`, VM-Name `vm-lamp-01`, Region wie oben, Image **Ubuntu Server 24.04 LTS - x64 Gen2**, Größe `Standard_B2s` (reicht für das Lab).
 4. Authentifizierungstyp: **SSH public key**, Benutzername `azureuser`, SSH public key source **Use existing key**, Inhalt aus `~/.ssh/workshop_lab.pub` einfügen.
 5. Eingehende Ports: **SSH (22)** und **HTTP (80)** erlauben.
 6. **Überprüfen + erstellen** → **Erstellen**.
@@ -30,10 +32,10 @@ Alle drei Wege erzeugen dieselbe Ressource. Im Kurs führen wir mindestens zwei 
 ### 1b) Azure CLI
 
 ```bash
-az group create --name rg-lamp-lab --location westeurope
+az group create --name rg-lamp-lab-<IHR-SUFFIX> --location westeurope
 
 az vm create \
-  --resource-group rg-lamp-lab \
+  --resource-group rg-lamp-lab-<IHR-SUFFIX> \
   --name vm-lamp-01 \
   --image Ubuntu2404 \
   --size Standard_B2s \
@@ -41,7 +43,7 @@ az vm create \
   --ssh-key-values ~/.ssh/workshop_lab.pub \
   --public-ip-sku Standard
 
-az vm open-port --resource-group rg-lamp-lab --name vm-lamp-01 --port 80 --priority 900
+az vm open-port --resource-group rg-lamp-lab-<IHR-SUFFIX> --name vm-lamp-01 --port 80 --priority 900
 ```
 
 `az vm create` legt bei fehlendem VNet/NSG automatisch passende Standardressourcen an (VNet, Subnetz, NSG mit SSH-Regel, öffentliche IP). `az vm open-port` ergänzt die HTTP-Regel — Portal-Deployments legen diese im Assistenten direkt mit an, CLI/PowerShell erfordern hierfür wie gezeigt einen zweiten Schritt.
@@ -49,13 +51,13 @@ az vm open-port --resource-group rg-lamp-lab --name vm-lamp-01 --port 80 --prior
 ### 1c) Azure PowerShell
 
 ```powershell
-New-AzResourceGroup -Name rg-lamp-lab -Location westeurope
+New-AzResourceGroup -Name rg-lamp-lab-<IHR-SUFFIX> -Location westeurope
 
 $cred = New-Object System.Management.Automation.PSCredential (
     "azureuser", (New-Object System.Security.SecureString))
 
 New-AzVm `
-  -ResourceGroupName rg-lamp-lab `
+  -ResourceGroupName rg-lamp-lab-<IHR-SUFFIX> `
   -Name vm-lamp-01 `
   -Location westeurope `
   -Image "Canonical:ubuntu-24_04-lts:server:latest" `
@@ -76,7 +78,7 @@ ssh -i ~/.ssh/workshop_lab azureuser@<PUBLIC-IP>
 Die öffentliche IP steht im Portal auf der VM-Übersichtsseite, oder per CLI:
 
 ```bash
-az vm show -d --resource-group rg-lamp-lab --name vm-lamp-01 --query publicIps -o tsv
+az vm show -d --resource-group rg-lamp-lab-<IHR-SUFFIX> --name vm-lamp-01 --query publicIps -o tsv
 ```
 
 ## Schritt 3: Paketquellen aktualisieren

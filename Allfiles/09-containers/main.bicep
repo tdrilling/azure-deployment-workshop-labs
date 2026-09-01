@@ -15,7 +15,7 @@
 //
 // Deployment (Resource Group muss vorher existieren, siehe Instructions):
 //   az deployment group create \
-//     --resource-group rg-container-lab-bicep \
+//     --resource-group rg-container-lab-bicep-<IHR-SUFFIX> \
 //     --template-file main.bicep \
 //     --parameters main.bicepparam
 
@@ -25,7 +25,7 @@ targetScope = 'resourceGroup'
 param location string = resourceGroup().location
 
 @description('Name der Resource Group, in die deployt wird. Wird NICHT von diesem Template angelegt -- dient hier ausschliesslich als Tag zur Dokumentation, analog zu resourceGroupName in Lab 4/7s main.bicep.')
-param resourceGroupName string = 'rg-container-lab-bicep'
+param resourceGroupName string = 'rg-container-lab-bicep-<IHR-SUFFIX>'
 
 @description('Login-Server der bereits bestehenden Azure Container Registry, z. B. myregistry.azurecr.io.')
 param acrLoginServer string

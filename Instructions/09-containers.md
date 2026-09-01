@@ -44,10 +44,10 @@ Dieser Schritt ist bewusst **komplett unabhängig von Azure** — der große Vor
 ## Schritt 2: Azure Container Registry anlegen
 
 ```bash
-az group create --name rg-container-lab-bicep --location westeurope
+az group create --name rg-container-lab-bicep-<IHR-SUFFIX> --location westeurope
 
 az acr create \
-  --resource-group rg-container-lab-bicep \
+  --resource-group rg-container-lab-bicep-<IHR-SUFFIX> \
   --name <EINDEUTIGER-ACR-NAME> \
   --sku Basic \
   --admin-enabled true
@@ -77,13 +77,13 @@ Diese drei Werte (`loginServer`, `username`, `password`) in `main.bicepparam` be
 
 ## Schritt 5: Parameterdatei vervollständigen
 
-In `main.bicepparam` alle drei `<CHANGE_ME>`-Platzhalter (`acrLoginServer`, `acrUsername`, `acrPassword`) mit den Werten aus Schritt 4 ersetzen sowie `mysqlAdminPassword` mit einem gültigen Kennwort (dieselbe Komplexitätsregel wie in Lab 7, Schritt 1).
+In `main.bicepparam` alle drei `<CHANGE_ME>`-Platzhalter (`acrLoginServer`, `acrUsername`, `acrPassword`) mit den Werten aus Schritt 4 ersetzen sowie `mysqlAdminPassword` mit einem gültigen Kennwort (dieselbe Komplexitätsregel wie in Lab 7, Schritt 1). Bei `resourceGroupName` außerdem das `<IHR-SUFFIX>` durch Ihr Kürzel ersetzen (rein kosmetisch, der Parameter dient nur als Tag).
 
 ## Schritt 6: Deployment vorab prüfen mit `what-if`
 
 ```bash
 az deployment group what-if \
-  --resource-group rg-container-lab-bicep \
+  --resource-group rg-container-lab-bicep-<IHR-SUFFIX> \
   --template-file Allfiles/09-containers/main.bicep \
   --parameters Allfiles/09-containers/main.bicepparam
 ```
@@ -92,7 +92,7 @@ az deployment group what-if \
 
 ```bash
 az deployment group create \
-  --resource-group rg-container-lab-bicep \
+  --resource-group rg-container-lab-bicep-<IHR-SUFFIX> \
   --template-file Allfiles/09-containers/main.bicep \
   --parameters Allfiles/09-containers/main.bicepparam \
   --name lab9-container-deployment
@@ -104,7 +104,7 @@ Laufzeit: ca. 5-7 Minuten (auch hier braucht der MySQL Flexible Server den grö�
 
 ```bash
 az deployment group show \
-  --resource-group rg-container-lab-bicep \
+  --resource-group rg-container-lab-bicep-<IHR-SUFFIX> \
   --name lab9-container-deployment \
   --query properties.outputs
 ```

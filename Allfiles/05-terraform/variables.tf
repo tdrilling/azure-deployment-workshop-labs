@@ -14,7 +14,7 @@ variable "location" {
 variable "resource_group_name" {
   description = "Name der Resource Group. Wird von diesem Root-Modul SELBST angelegt (siehe main.tf) -- anders als in Lab 4, wo die Resource Group vorab per 'az group create' existieren muss."
   type        = string
-  default     = "rg-lamp-lab-tf"
+  default     = "rg-lamp-lab-tf-<IHR-SUFFIX>"
 }
 
 variable "vm_name" {

@@ -147,7 +147,7 @@ Danach die `wordpress_url` aus Schritt 5 im Browser öffnen — das WordPress-Se
 terraform destroy -var-file="terraform.tfvars"
 ```
 
-Auch das ist neu gegenüber Lab 4: Weil Terraform in der State-Datei genau weiß, welche Ressourcen es angelegt hat, kann es sie gezielt und vollständig wieder entfernen — inklusive der in diesem Lab von `main.tf` selbst angelegten Resource Group. Ein Äquivalent zu `az group delete --name rg-lamp-lab-tf --yes` (das bei Bicep der übliche Aufräumweg ist, weil ARM die Resource Group ja gar nicht selbst angelegt hat) funktioniert hier zwar auch, `terraform destroy` ist aber der zum Werkzeug passende, State-bewusste Weg und sollte im Kurs als solcher vorgeführt werden — gerade weil dieses Lab als einmalige Demonstration angelegt ist und nach dem Termin nichts an ungenutzten Ressourcen zurückbleiben soll.
+Auch das ist neu gegenüber Lab 4: Weil Terraform in der State-Datei genau weiß, welche Ressourcen es angelegt hat, kann es sie gezielt und vollständig wieder entfernen — inklusive der in diesem Lab von `main.tf` selbst angelegten Resource Group. Ein Äquivalent zu `az group delete --name rg-lamp-lab-tf-<IHR-SUFFIX> --yes` (das bei Bicep der übliche Aufräumweg ist, weil ARM die Resource Group ja gar nicht selbst angelegt hat) funktioniert hier zwar auch, `terraform destroy` ist aber der zum Werkzeug passende, State-bewusste Weg und sollte im Kurs als solcher vorgeführt werden — gerade weil dieses Lab als einmalige Demonstration angelegt ist und nach dem Termin nichts an ungenutzten Ressourcen zurückbleiben soll.
 
 ---
 

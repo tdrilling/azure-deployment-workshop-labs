@@ -22,7 +22,7 @@
 # Festplatte einliest).
 
 location             = "westeurope"
-resource_group_name  = "rg-lamp-lab-tf"
+resource_group_name  = "rg-lamp-lab-tf-<IHR-SUFFIX>"
 vm_name              = "vm-lamp-tf"
 vm_size              = "Standard_B2s"
 admin_username       = "azureuser"

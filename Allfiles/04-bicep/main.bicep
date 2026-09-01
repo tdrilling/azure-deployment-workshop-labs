@@ -9,7 +9,7 @@
 //
 // Deployment (Resource Group muss vorher existieren, siehe Instructions):
 //   az deployment group create \
-//     --resource-group rg-lamp-lab-bicep \
+//     --resource-group rg-lamp-lab-bicep-<IHR-SUFFIX> \
 //     --template-file main.bicep \
 //     --parameters main.bicepparam
 
@@ -19,7 +19,7 @@ targetScope = 'resourceGroup'
 param location string = resourceGroup().location
 
 @description('Name der Resource Group, in die deployt wird. Wird NICHT von diesem Template angelegt (siehe "az group create" in Instructions/04-bicep.md) -- dient hier ausschliesslich als Tag zur Dokumentation, welche RG gemeint war.')
-param resourceGroupName string = 'rg-lamp-lab-bicep'
+param resourceGroupName string = 'rg-lamp-lab-bicep-<IHR-SUFFIX>'
 
 @description('Name der virtuellen Maschine.')
 param vmName string = 'vm-lamp-bicep'

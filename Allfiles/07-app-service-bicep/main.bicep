@@ -18,7 +18,7 @@
 //
 // Deployment (Resource Group muss vorher existieren, siehe Instructions):
 //   az deployment group create \
-//     --resource-group rg-appservice-lab-bicep \
+//     --resource-group rg-appservice-lab-bicep-<IHR-SUFFIX> \
 //     --template-file main.bicep \
 //     --parameters main.bicepparam
 
@@ -28,7 +28,7 @@ targetScope = 'resourceGroup'
 param location string = resourceGroup().location
 
 @description('Name der Resource Group, in die deployt wird. Wird NICHT von diesem Template angelegt -- dient hier ausschliesslich als Tag zur Dokumentation, analog zu resourceGroupName in Lab 4s main.bicep.')
-param resourceGroupName string = 'rg-appservice-lab-bicep'
+param resourceGroupName string = 'rg-appservice-lab-bicep-<IHR-SUFFIX>'
 
 @description('Name des App Service Plans.')
 param appServicePlanName string = 'asp-wordpress-bicep'
