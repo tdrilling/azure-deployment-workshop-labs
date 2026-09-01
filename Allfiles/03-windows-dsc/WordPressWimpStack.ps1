@@ -175,8 +175,15 @@ FLUSH PRIVILEGES;
                 # frueheren Versuch mit Zeilenumbruch wurde der Befehl beim DSC-/MOF-
                 # Kompilieren offenbar anders zerlegt und blieb wirkungslos, obwohl er
                 # manuell in einer interaktiven Shell fehlerfrei lief:
+                # Erst entfernen (Fehler ignorieren, falls noch nicht vorhanden),
+                # dann sauber neu hinzufuegen -- sonst schlaegt der Add-Befehl bei
+                # jedem erneuten DSC-Durchlauf mit Exitcode 183 (ERROR_ALREADY_EXISTS)
+                # fehl, sobald der Eintrag beim vorherigen Durchlauf schon gesetzt
+                # wurde. Nur der letzte (Add-)Befehl wird auf Erfolg geprueft:
                 $appcmd = "$env:windir\system32\inetsrv\appcmd.exe"
-                & $appcmd set config "Default Web Site" -section:system.webServer/defaultDocument /enabled:true "/+files.[value='index.php']" /commit:apphost
+                & $appcmd set config "Default Web Site" -section:system.webServer/defaultDocument /enabled:true /commit:apphost
+                & $appcmd set config "Default Web Site" -section:system.webServer/defaultDocument "/-files.[value='index.php']" /commit:apphost 2>$null
+                & $appcmd set config "Default Web Site" -section:system.webServer/defaultDocument "/+files.[value='index.php']" /commit:apphost
                 if ($LASTEXITCODE -ne 0) {
                     throw "appcmd defaultDocument-Eintrag ist mit Exitcode $LASTEXITCODE fehlgeschlagen"
                 }
