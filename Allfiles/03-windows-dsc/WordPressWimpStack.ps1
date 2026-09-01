@@ -147,6 +147,22 @@ FLUSH PRIVILEGES;
                 $config = $config -replace "database_name_here", $using:WpDbName
                 $config = $config -replace "username_here", $using:WpDbUser
                 $config = $config -replace "password_here", $using:WpDbPassword
+
+                # Eindeutige Auth-Keys/Salts erzeugen -- ohne echte Werte bleibt der
+                # Platzhaltertext "put your unique phrase here" stehen, und WordPress
+                # versucht dann bei JEDEM Seitenaufruf (auch beim Setup-Assistenten
+                # selbst) einen Ersatz-Salt in die wp_options-Tabelle zu schreiben
+                # (INSERT ... 'nonce_key' ...). Bei einer frischen Installation
+                # existiert diese Tabelle noch nicht -- der Schreibversuch schlaegt
+                # fehl und WordPress liefert 500 Internal Server Error, noch bevor
+                # der Setup-Assistent angezeigt wird. Deshalb muessen die 8
+                # Platzhalter durch echte Zufallswerte ersetzt werden, bevor die
+                # Datei geschrieben wird:
+                function New-WpSalt {
+                    -join ((48..57) + (65..90) + (97..122) + (33,35,36,37,38,40,41,42,43,45) | Get-Random -Count 64 | ForEach-Object { [char]$_ })
+                }
+                $config = [regex]::Replace($config, [regex]::Escape("put your unique phrase here"), { New-WpSalt })
+
                 $config | Set-Content "C:\inetpub\wwwroot\wp-config.php"
 
                 # index.php als Default-Dokument eintragen -- IIS kennt es ohne diesen
