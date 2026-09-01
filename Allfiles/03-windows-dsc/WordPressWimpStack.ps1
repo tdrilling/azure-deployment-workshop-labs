@@ -45,9 +45,34 @@ Configuration WordPressWimpStack {
             DependsOn = "[WindowsFeature]IIS"
         }
 
+        # -- Schritt 1b: Visual C++ Redistributable x64 installieren --
+        # PHPs Windows-Builds (vs16/NTS) sind gegen die VC++-2015-2022-Runtime
+        # gelinkt. Fehlt sie, startet php-cgi.exe zwar, stuerzt aber sofort und
+        # ohne jede Fehlermeldung/Konsolenausgabe ab -- IIS zeigt dann nur ein
+        # nichtssagendes "500.0 Internal Server Error", das erst per direktem
+        # Aufruf von php-cgi.exe -v auf der VM erkennbar wird. Deshalb hier
+        # generisch VOR der PHP-Installation nachziehen:
+        Script InstallVcRedist {
+            DependsOn = "[WindowsFeature]IisCgi"
+            SetScript = {
+                $exePath = "C:\Windows\Temp\vc_redist.x64.exe"
+                Invoke-WebRequest -Uri "https://aka.ms/vs/17/release/vc_redist.x64.exe" -OutFile $exePath -UseBasicParsing
+                $proc = Start-Process $exePath -ArgumentList "/install /quiet /norestart" -Wait -PassThru
+                # Exitcode 3010 = Erfolg, Neustart waere empfehlenswert aber hier
+                # nicht erforderlich (die Runtime-DLLs stehen sofort zur Verfuegung):
+                if ($proc.ExitCode -ne 0 -and $proc.ExitCode -ne 3010) {
+                    throw "VC++-Redistributable-Installation ist mit Exitcode $($proc.ExitCode) fehlgeschlagen"
+                }
+            }
+            TestScript = {
+                Test-Path "$env:windir\System32\vcruntime140_1.dll"
+            }
+            GetScript = { @{ Result = (Test-Path "$env:windir\System32\vcruntime140_1.dll") } }
+        }
+
         # -- Schritt 2: PHP herunterladen, entpacken, als FastCGI-Handler registrieren --
         Script InstallPhp {
-            DependsOn = "[WindowsFeature]IisCgi"
+            DependsOn = "[Script]InstallVcRedist"
 
             TestScript = {
                 Test-Path "C:\PHP\php-cgi.exe"
