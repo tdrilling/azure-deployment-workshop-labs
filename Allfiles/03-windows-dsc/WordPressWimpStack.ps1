@@ -23,6 +23,12 @@ Configuration WordPressWimpStack {
         [Parameter(Mandatory = $true)]
         [string] $MySqlRootPassword,   # per --protected-settings (az vm extension set) uebergeben, siehe Instructions/03-windows-dsc.md
 
+        [Parameter(Mandatory = $true)]
+        [string] $MariaDbStorageAccount,   # Name des selbst angelegten Storage Accounts aus Schritt 3 -- als echter
+                                            # DSC-Parameter uebergeben (settings.configurationArguments, nicht
+                                            # protected, da kein Geheimnis), NICHT mehr hier im Skript hartkodieren.
+                                            # Siehe Instructions/03-windows-dsc.md Schritt 2/4.
+
         [string] $WpDbName = "wordpress",
         [string] $WpDbUser = "wpuser",
         [Parameter(Mandatory = $true)]
@@ -117,12 +123,13 @@ Configuration WordPressWimpStack {
         # ohne ein Installer-Bootstrap-/Lizenzsystem dazwischen.
         Script InstallMySql {
             SetScript = {
-                $msiUrl = "https://ctwplab3sa.blob.core.windows.net/dsc/mariadb-server.msi"
                 # Installer EINMALIG per eigenem Browser von https://mariadb.org/download/
                 # laden (Windows, x86_64, MSI Package, aktuelle stabile/LTS-Version) und
                 # unter EXAKT diesem Namen in den eigenen Blob-Container hochladen:
-                #   az storage blob upload --account-name ctwplab3sa --container-name dsc \
+                #   az storage blob upload --account-name <STORAGE-ACCOUNT> --container-name dsc \
                 #     --name mariadb-server.msi --file <heruntergeladene-Datei>.msi
+                $storageAccount = $using:MariaDbStorageAccount
+                $msiUrl = "https://$storageAccount.blob.core.windows.net/dsc/mariadb-server.msi"
                 $msiPath = "C:\Windows\Temp\mariadb-server.msi"
                 Invoke-WebRequest -Uri $msiUrl -OutFile $msiPath -UseBasicParsing
 

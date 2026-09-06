@@ -43,7 +43,9 @@ az vm open-port --resource-group rg-wimp-lab-<IHR-SUFFIX> --name vm-wimp-01 --po
 
 ## Schritt 2: Root- und WordPress-DB-Kennwort festlegen
 
-In `WordPressWimpStack.ps1` gibt es zwei **Pflichtparameter**, die nicht im Skript hartkodiert sind: `MySqlRootPassword` und `WpDbPassword`. **Sie legen beide Werte selbst fest** — es gibt kein "richtiges" Kennwort, das schon irgendwo im Skript steht. Notieren Sie sich jetzt zwei Kennwörter Ihrer Wahl; Sie tragen sie in Schritt 4 ein.
+In `WordPressWimpStack.ps1` gibt es drei **Pflichtparameter**, die nicht im Skript hartkodiert sind: `MySqlRootPassword`, `WpDbPassword` und `MariaDbStorageAccount`. **Sie legen die beiden Kennwörter selbst fest** — es gibt kein "richtiges" Kennwort, das schon irgendwo im Skript steht. Notieren Sie sich jetzt zwei Kennwörter Ihrer Wahl; Sie tragen alle drei Werte in Schritt 4 ein.
+
+`MariaDbStorageAccount` ist kein Kennwort, sondern der Name Ihres in Schritt 3 selbst angelegten Storage Accounts — auch dieser Wert ist ein echter DSC-Parameter und steht nicht mehr fest im Skript. Damit entfällt das früher nötige manuelle Anpassen von `WordPressWimpStack.ps1` vor dem Hochladen als ZIP (Schritt 3a), das erfahrungsgemäß leicht übersehen wird und dann erst beim DSC-Lauf mit einem schwer zuzuordnenden Download-Fehler auffällt.
 
 Der Parametername `MySqlRootPassword` ist historisch gewachsen — als Datenbank-Server kommt in diesem Lab **MariaDB** zum Einsatz (Schritt 3b), MySQL-Wire-Protokoll-kompatibel und mit identischem `mysql.exe`-Client, daher dieselbe Bezeichnung im Skript beibehalten.
 
@@ -112,7 +114,7 @@ az storage blob upload --account-name <STORAGE-ACCOUNT> --container-name dsc --n
 
 **Keine Administratorrechte für eine lokale Installation?** Alternative ohne CLI-Setup: [Azure Storage Explorer](https://azure.microsoft.com/products/storage/storage-explorer) (Desktop-App), mit dem Azure-Konto anmelden, zum Storage Account und Container `dsc` navigieren, Datei per Drag & Drop hochladen (dabei auf den Namen `mariadb-server.msi` umbenennen).
 
-`$msiUrl` in `WordPressWimpStack.ps1` zeigt bereits auf `https://<STORAGE-ACCOUNT>.blob.core.windows.net/dsc/mariadb-server.msi` — Storage-Account-Namen im Skript ggf. an den tatsächlich verwendeten anpassen. Dieser Schritt ist **einmalig pro Storage Account**, nicht pro Kurstermin — nur nach dem Anlegen eines neuen/anderen Storage Accounts wiederholen.
+`WordPressWimpStack.ps1` baut `$msiUrl` zur Laufzeit aus dem Parameter `MariaDbStorageAccount` zusammen (`https://<STORAGE-ACCOUNT>.blob.core.windows.net/dsc/mariadb-server.msi`) — Sie tragen Ihren Storage-Account-Namen in Schritt 4 ein, das Skript selbst bleibt unverändert. Dieser Schritt ist **einmalig pro Storage Account**, nicht pro Kurstermin — nur nach dem Anlegen eines neuen/anderen Storage Accounts wiederholen.
 
 ## Schritt 4: DSC-Erweiterung auf die VM anwenden
 
@@ -130,6 +132,9 @@ az vm extension set \
         "url": "https://<STORAGE-ACCOUNT>.blob.core.windows.net/dsc/WordPressWimpStack.ps1.zip",
         "script": "WordPressWimpStack.ps1",
         "function": "WordPressWimpStack"
+      },
+      "configurationArguments": {
+        "MariaDbStorageAccount": "<STORAGE-ACCOUNT>"
       }
     }' \
   --protected-settings '{
@@ -140,7 +145,7 @@ az vm extension set \
     }'
 ```
 
-Tragen Sie hier Ihre beiden Kennwörter aus Schritt 2 ein — ersetzen Sie **beide** `<CHANGE_ME>`-Platzhalter durch selbst gewählte Werte, nicht durch den Platzhaltertext selbst. `--protected-settings` verschlüsselt die übergebenen Parameter (im Gegensatz zu `--settings`, die im Klartext im Ressourcen-Manifest sichtbar wären) — deshalb müssen die beiden Kennwörter unter `protectedSettings.configurationArguments` stehen, nicht unter `settings.configurationArguments`. `configuration.url` muss exakt auf das in Schritt 3 hochgeladene ZIP zeigen. Quelle: [Azure Desired State Configuration Extension Handler](https://learn.microsoft.com/en-us/azure/virtual-machines/extensions/dsc-windows).
+Ersetzen Sie **beide** `<STORAGE-ACCOUNT>`-Platzhalter (URL und `configurationArguments`) durch den in Schritt 3 gewählten Namen, sowie **beide** `<CHANGE_ME>`-Platzhalter aus Schritt 2 durch selbst gewählte Kennwörter — nicht durch den Platzhaltertext selbst. `--protected-settings` verschlüsselt die übergebenen Parameter (im Gegensatz zu `--settings`, die im Klartext im Ressourcen-Manifest sichtbar wären); der Storage-Account-Name ist kein Geheimnis und gehört deshalb unter `settings.configurationArguments`, die beiden Kennwörter dagegen unter `protectedSettings.configurationArguments`. `configuration.url` muss exakt auf das in Schritt 3 hochgeladene ZIP zeigen. Quelle: [Azure Desired State Configuration Extension Handler](https://learn.microsoft.com/en-us/azure/virtual-machines/extensions/dsc-windows).
 
 ## Schritt 5: Ausführung prüfen
 
@@ -162,7 +167,7 @@ Bei `"code": "ProvisioningState/succeeded"` ist die Konfiguration angewendet. Da
 
 - **Erweiterung meldet `ProvisioningState/failed`:** Detail-Logs liegen auf der VM unter `C:\WindowsAzure\Logs\Plugins\Microsoft.Powershell.DSC\<Version>\` — insbesondere `DscExtensionHandler.log`. Per RDP verbinden (Port 3389, aus Schritt 1 geöffnet) und dort nachsehen.
 - **PHP-Download schlägt mit `404 Not Found` fehl:** `windows.php.net/downloads/releases/` (ohne `/archives/`) hält nur die jeweils aktuelle(n) Version(en) vor. `$phpUrl` in `WordPressWimpStack.ps1` zeigt deshalb auf den dauerhaften Archiv-Pfad `windows.php.net/downloads/releases/archives/...`.
-- **MariaDB-Installer-Download schlägt fehl:** Schritt 3b wurde übersprungen, oder der Storage-Account-Name im Skript stimmt nicht mit dem tatsächlich verwendeten überein — siehe Schritt 3b.
+- **MariaDB-Installer-Download schlägt fehl:** Schritt 3b wurde übersprungen, oder der `MariaDbStorageAccount`-Wert in `--settings` (Schritt 4) stimmt nicht mit dem tatsächlich verwendeten Storage-Account-Namen überein — siehe Schritt 3b/4. (Vor dieser Version musste dafür der Storage-Account-Name direkt im Skript angepasst werden — das entfällt jetzt.)
 - **`msiexec`-Installation von MariaDB schlägt fehl (Exitcode ungleich 0 in der DSC-Fehlermeldung):** häufigste Ursache ist ein bereits belegter Port 3306 oder ein Rest einer vorherigen, fehlgeschlagenen Installation — dann `C:\MariaDB` und einen eventuell vorhandenen Windows-Dienst `MariaDB` vor einem erneuten Versuch per RDP manuell entfernen, bevor die DSC-Erweiterung neu angewendet wird.
 - **appcmd.exe-Aufrufe schlagen mit "already exists" fehl:** passiert bei einem zweiten `Start-DscConfiguration`-Lauf auf derselben VM, da `TestScript` für `InstallPhp` nur die Datei prüft, nicht die IIS-Konfiguration — für Wiederholungsläufe im Kurs ggf. mit einer frischen VM arbeiten.
 
