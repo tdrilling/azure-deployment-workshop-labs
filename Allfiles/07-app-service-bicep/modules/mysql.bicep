@@ -1,10 +1,10 @@
 // Azure Deployment Workshop - Lab 7: MySQL-Flexible-Server-Modul
 //
-// Deklariert deklarativ, was in Lab 6 (Tag 3, manuell) per "az mysql
+// Deklariert deklarativ, was in Lab 6 (Block 3, manuell) per "az mysql
 // flexible-server create" + "az mysql flexible-server db create" + "az
 // mysql flexible-server firewall-rule create" imperativ entstand -- die
 // erste tatsaechlich bereitgestellte Azure Database for MySQL Flexible
-// Server im Kurs (Tag 2 behandelte diesen Dienst nur konzeptionell/
+// Server im Kurs (Block 2 behandelte diesen Dienst nur konzeptionell/
 // illustrativ, ausdruecklich ohne eigenes Vollab). Siehe Instructions/
 // 07-app-service-bicep.md fuer den vollstaendigen Kontext.
 

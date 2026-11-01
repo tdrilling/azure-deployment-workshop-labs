@@ -3,7 +3,7 @@
 // Unveraendert (bewusst 1:1) uebernommen aus Lab 7 (Allfiles/07-app-
 // service-bicep/modules/mysql.bicep): Lab 9 stellt seine EIGENE MySQL-
 // Flexible-Server-Instanz bereit, unabhaengig von Lab 7s Instanz -- exakt
-// dasselbe Prinzip wie schon zwischen Lab 4 (Tag 2) und Lab 7 (Tag 3):
+// dasselbe Prinzip wie schon zwischen Lab 4 (Block 2) und Lab 7 (Block 3):
 // jedes Lab bleibt unabhaengig in seiner eigenen Resource Group deploybar.
 // Der Container in diesem Lab bindet sich an eine Azure-Database-for-
 // MySQL-Datenbank genauso an wie schon die App Service Web App in Lab 7 --

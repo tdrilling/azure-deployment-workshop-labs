@@ -2,7 +2,7 @@
 //
 // Bildet dieselbe Zielanwendung ab wie Lab 6 (App Service, manuell per
 // CLI), diesmal vollstaendig deklarativ -- dasselbe Prinzip wie der
-// Schritt von Lab 1 (CLI) zu Lab 4 (Bicep) an Tag 2. Orchestriert zwei
+// Schritt von Lab 1 (CLI) zu Lab 4 (Bicep) in Block 2. Orchestriert zwei
 // Module: modules/mysql.bicep (Azure Database for MySQL Flexible Server
 // + Datenbank + Firewall-Regel) und modules/appservice.bicep (App
 // Service Plan + Web App + "staging"-Deployment-Slot fuer Lab 8).
@@ -11,7 +11,7 @@
 // modules/network.bicep ein. App Service ist eine vollstaendig
 // plattformverwaltete PaaS-Umgebung -- es gibt keine eigene VM, keine
 // NIC, keine Public IP und (in diesem einfuehrenden Lab) kein eigenes
-// VNet zu verwalten. Genau das ist der didaktische Kernpunkt von Tag 3:
+// VNet zu verwalten. Genau das ist der didaktische Kernpunkt von Block 3:
 // je hoeher die Abstraktionsstufe (IaaS -> PaaS), desto weniger
 // Infrastruktur muss das Template selbst deklarieren. Details und
 // Begruendungen siehe Instructions/07-app-service-bicep.md.

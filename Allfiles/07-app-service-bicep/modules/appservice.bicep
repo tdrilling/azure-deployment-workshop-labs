@@ -1,6 +1,6 @@
 // Azure Deployment Workshop - Lab 7: App-Service-Modul
 //
-// Ersetzt modules/vm.bicep aus Lab 4 (Tag 2) fuer die PaaS-Variante der
+// Ersetzt modules/vm.bicep aus Lab 4 (Block 2) fuer die PaaS-Variante der
 // Zielarchitektur: kein VM-Betrieb, kein SSH, kein Cloud-Init mehr -- statt
 // einer VM-Ressource entsteht hier ein App Service Plan (Linux) mit einer
 // Web App (PHP-Runtime) und einer "staging"-Deployment-Slot fuer Lab 8
